@@ -1,0 +1,76 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * bheap - an intrusive binary heap
+ *
+ * Each item to be inserted into the heap embeds a 'struct bheap_node',
+ * then uses container_of to find itself. Allows avoiding dynamic allocation of
+ * a heap-array.
+ *
+ * Operations, where n is the number of items in the heap:
+ * init:    O(1)
+ * push:    O(lg(n))
+ * pop:     O(lg(n))
+ * peek:    O(1)
+ *
+ * Example:
+ *	#include <stdio.h>
+ *
+ *	#include <ccan/bheap/bheap.h>
+ *	#include <ccan/container_of/container_of.h>
+ *
+ *	struct foo {
+ *		int i;
+ *		struct bheap_node n;
+ *	};
+ *
+ *	static int ord_foo(const struct bheap_node *i,
+ *                         const struct bheap_node *j)
+ *	{
+ *		return container_of(i, struct foo, n)->i
+ *		     - container_of(j, struct foo, n)->i;
+ *	}
+ *
+ *	int main(void)
+ *	{
+ *		struct bheap h;
+ *		struct foo arr[] = { {1}, {0}, {2} };
+ *		int i;
+ *
+ *		bheap_init(&h, ord_foo);
+ *
+ *		for (i = 0; i < 3; i++)
+ *			bheap_push(&h, &arr[i].n);
+ *
+ *		// should print 0, 1, 2
+ *		for (i = 0; i < 3; i++) {
+ *			struct bheap_node *v = bheap_pop(&h);
+ *			printf("%d\n", container_of(v, struct foo, n)->i);
+ *		}
+ *		return 0;
+ *	}
+ *
+ * License: LGPL (v3 or any later version)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		printf("ccan/compiler\n");
+		printf("ccan/ilog\n");
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/container_of\n");
+		printf("ccan/array_size\n");
+                return 0;
+        }
+
+	return 1;
+}

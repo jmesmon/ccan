@@ -1,0 +1,39 @@
+#! /bin/sh
+
+cd "$(dirname "$0")"
+
+: ${CFLAGS:=-Wall}
+: ${CC:=cc}
+ALL_CFLAGS="$CFLAGS -I../../.."
+
+run () {
+	echo "$@"
+	"$@"
+}
+
+i=0
+b() {
+	run ${CC} ${ALL_CFLAGS} bench.c -o bench-$i "$@"
+	run ./bench-$i
+	: $((i++))
+}
+
+b -Og
+b -Os
+b -O3
+
+b -march=native -Og
+b -march=native -Os
+b -march=native -O3
+
+b -march=native -Og -fwhole-program
+b -march=native -Os -fwhole-program
+b -march=native -O3 -fwhole-program
+
+b -march=native -Og -fsanitize=undefined
+b -march=native -Os -fsanitize=undefined
+b -march=native -O3 -fsanitize=undefined
+
+b -march=native -Og -fsanitize=undefined -fsanitize=address
+b -march=native -Os -fsanitize=undefined -fsanitize=address
+b -march=native -O3 -fsanitize=undefined -fsanitize=address
