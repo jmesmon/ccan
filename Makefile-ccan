@@ -41,6 +41,7 @@ MODS_WITH_SRC := aga \
 	avl \
 	base64 \
 	bdelta \
+	bheap \
 	block_pool \
 	breakpoint \
 	btree \
