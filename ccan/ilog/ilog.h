@@ -100,23 +100,59 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /*Note the casts to (int) below: this prevents "upgrading"
    the type of an entire expression to an (unsigned) size_t.*/
-#if INT_MAX>=2147483647 && HAVE_BUILTIN_CLZ
-#define builtin_ilog32_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clz(v))
-#elif LONG_MAX>=2147483647L && HAVE_BUILTIN_CLZL
-#define builtin_ilog32_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clzl(v))
+#if HAVE_BUILTIN_CLZ
+
+# define __ILOG_B(v, type, type_suffix) \
+	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
+
+# define builtin_ilog_u(v)   __ILOG_B(v, unsigned, )
+# define builtin_ilog_ul(v)  __ILOG_B(v, unsigned long, l)
+# define builtin_ilog_ull(v) __ILOG_B(v, unsigned long long, ll)
+
+# if   UINT_MAX   >= 0xff
+#  define builtin_ilog8_nz(v) builtin_ilog_u(v)
+# endif
+
+# if   UINT_MAX   >= 0xffff
+#  define builtin_ilog16_nz(v) builtin_ilog_u(v)
+# elif ULONG_MAX  >= 0xffff
+#  define builtin_ilog16_nz(v) builtin_ilog_ul(v)
+# endif
+
+# if   UINT_MAX   >= 0xffffffff
+#  define builtin_ilog32_nz(v) builtin_ilog_u(v)
+# elif ULONG_MAX  >= 0xffffffff
+#  define builtin_ilog32_nz(v) builtin_ilog_ul(v)
+# elif ULLONG_MAX >= 0xffffffff
+#  define builtin_ilog32_nz(v) builtin_ilog_ull(v)
+# endif
+
+# if    UINT_MAX   >= 0xffffffffffffffff
+#  define builtin_ilog64_nz(v) builtin_ilog_u(v)
+# elif  ULONG_MAX  >= 0xffffffffffffffff
+#  define builtin_ilog64_nz(v) builtin_ilog_ul(v)
+# elif  ULLONG_MAX >= 0xffffffffffffffff
+#  define builtin_ilog64_nz(v) builtin_ilog_ull(v)
+# endif
+
+#endif /* HAVE_BUILTIN_CLZ */
+
+#ifdef builtin_ilog8_nz
+# define ilog8(_v)    (builtin_ilog8_nz(_v)&-!!(_v))
+# define ilog8_nz(_v)  builtin_ilog8_nz(_v)
+#else
+  /* TODO: provide optimized 8bit versions of non-static ilog */
+# define ilog8_nz(_v) ilog8(_v)
+# define ilog8(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
 #endif
 
-#if INT_MAX>=9223372036854775807LL && HAVE_BUILTIN_CLZ
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clz(v))
-#elif LONG_MAX>=9223372036854775807LL && HAVE_BUILTIN_CLZL
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned long)*CHAR_BIT) - __builtin_clzl(v))
-#elif HAVE_BUILTIN_CLZLL
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned long long)*CHAR_BIT) - __builtin_clzll(v))
+#ifdef builtin_ilog16_nz
+# define ilog16(_v)    (builtin_ilog16_nz(_v)&-!!(_v))
+# define ilog16_nz(_v) builtin_ilog16_nz(_v)
+#else
+  /* TODO: provide optimized 16bit versions of non-static ilog */
+# define ilog16_nz(_v) ilog16(_v)
+# define ilog16(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
 #endif
 
 #ifdef builtin_ilog32_nz
