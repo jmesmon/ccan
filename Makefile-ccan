@@ -35,6 +35,7 @@ MODS_WITH_SRC := antithread \
 	autodata \
 	avl \
 	bdelta \
+	bheap \
 	block_pool \
 	breakpoint \
 	btree \
