@@ -28,12 +28,12 @@ static UNNEEDED const unsigned char DEBRUIJN_IDX32[32]={
 #undef ilog64_nz
 #undef ilog64
 
-int ilog32(uint32_t _v){
+u8_ret_t ilog32(uint32_t _v){
 /*On a Pentium M, this branchless version tested as the fastest version without
    multiplications on 1,000,000,000 random 32-bit integers, edging out a
    similar version with branches, and a 256-entry LUT version.*/
 # if defined(ILOG_NODEBRUIJN)
-  int ret;
+  u8_ret_t ret;
   int m;
   ret=_v>0;
   m=(_v>0xFFFFU)<<4;
@@ -52,7 +52,7 @@ int ilog32(uint32_t _v){
   return ret;
 /*This de Bruijn sequence version is faster if you have a fast multiplier.*/
 # else
-  int ret;
+  u8_ret_t ret;
   ret=_v>0;
   _v|=_v>>1;
   _v|=_v>>2;
@@ -65,15 +65,15 @@ int ilog32(uint32_t _v){
 # endif
 }
 
-int ilog32_nz(uint32_t _v)
+u8_ret_t ilog32_nz(uint32_t _v)
 {
   return ilog32(_v);
 }
 
-int ilog64(uint64_t _v){
+u8_ret_t ilog64(uint64_t _v){
 # if defined(ILOG_NODEBRUIJN)
   uint32_t v;
-  int      ret;
+  u8_ret_t ret;
   int      m;
   ret=_v>0;
   m=(_v>0xFFFFFFFFU)<<5;
@@ -134,8 +134,7 @@ int ilog64(uint64_t _v){
 # endif
 }
 
-int ilog64_nz(uint64_t _v)
+u8_ret_t ilog64_nz(uint64_t _v)
 {
   return ilog64(_v);
 }
-

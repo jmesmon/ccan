@@ -5,6 +5,10 @@
 # include <stdint.h>
 # include <limits.h>
 # include <ccan/compiler/compiler.h>
+# include <ccan/ret_type/ret_type.h>
+
+u8_ret_t ilog16(uint16_t _v) CONST_FUNCTION;
+u8_ret_t ilog8(uint16_t _v) CONST_FUNCTION;
 
 /**
  * ilog32 - Integer binary logarithm of a 32-bit value.
@@ -25,7 +29,7 @@
  *		return 1U << ilog32(i-1);
  *	}
  */
-int ilog32(uint32_t _v) CONST_FUNCTION;
+u8_ret_t ilog32(uint32_t _v) CONST_FUNCTION;
 
 /**
  * ilog32_nz - Integer binary logarithm of a non-zero 32-bit value.
@@ -44,7 +48,7 @@ int ilog32(uint32_t _v) CONST_FUNCTION;
  *		return ilog32_nz(i) - 1;
  *	}
  */
-int ilog32_nz(uint32_t _v) CONST_FUNCTION;
+u8_ret_t ilog32_nz(uint32_t _v) CONST_FUNCTION;
 
 /**
  * ilog64 - Integer binary logarithm of a 64-bit value.
@@ -56,7 +60,7 @@ int ilog32_nz(uint32_t _v) CONST_FUNCTION;
  * See Also:
  *	ilog64_nz(), ilog32()
  */
-int ilog64(uint64_t _v) CONST_FUNCTION;
+u8_ret_t ilog64(uint64_t _v) CONST_FUNCTION;
 
 /**
  * ilog64_nz - Integer binary logarithm of a non-zero 64-bit value.
@@ -68,7 +72,7 @@ int ilog64(uint64_t _v) CONST_FUNCTION;
  * See Also:
  *	ilog64(), ilog32_nz()
  */
-int ilog64_nz(uint64_t _v) CONST_FUNCTION;
+u8_ret_t ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /**
  * STATIC_ILOG_32 - The integer logarithm of an (unsigned, 32-bit) constant.
@@ -105,37 +109,52 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 # define __ILOG_B(v, type, type_suffix) \
 	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
 
-# define builtin_ilog_u(v)   __ILOG_B(v, unsigned, )
-# define builtin_ilog_ul(v)  __ILOG_B(v, unsigned long, l)
-# define builtin_ilog_ull(v) __ILOG_B(v, unsigned long long, ll)
+# define builtin_ilog_u_nz(v)   __ILOG_B(v, unsigned, )
+# define builtin_ilog_ul_nz(v)  __ILOG_B(v, unsigned long, l)
+# define builtin_ilog_ull_nz(v) __ILOG_B(v, unsigned long long, ll)
+
+# if   UINT_MAX   >= SIZE_MAX
+#  define builtin_ilog_zu_nz(v) builtin_ilog_u_nz(v)
+# elif ULONG_MAX  >= SIZE_MAX
+#  define builtin_ilog_zu_nz(v) builtin_ilog_ul_nz(v)
+# elif ULLONG_MAX >= SIZE_MAX
+#  define builtin_ilog_zu_nz(v) builtin_ilog_ull_nz(v)
+# endif
 
 # if   UINT_MAX   >= 0xff
-#  define builtin_ilog8_nz(v) builtin_ilog_u(v)
+#  define builtin_ilog8_nz(v) builtin_ilog_u_nz(v)
 # endif
 
 # if   UINT_MAX   >= 0xffff
-#  define builtin_ilog16_nz(v) builtin_ilog_u(v)
+#  define builtin_ilog16_nz(v) builtin_ilog_u_nz(v)
 # elif ULONG_MAX  >= 0xffff
-#  define builtin_ilog16_nz(v) builtin_ilog_ul(v)
+#  define builtin_ilog16_nz(v) builtin_ilog_ul_nz(v)
 # endif
 
 # if   UINT_MAX   >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_u(v)
+#  define builtin_ilog32_nz(v) builtin_ilog_u_nz(v)
 # elif ULONG_MAX  >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_ul(v)
+#  define builtin_ilog32_nz(v) builtin_ilog_ul_nz(v)
 # elif ULLONG_MAX >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_ull(v)
+#  define builtin_ilog32_nz(v) builtin_ilog_ull_nz(v)
 # endif
 
 # if    UINT_MAX   >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_u(v)
+#  define builtin_ilog64_nz(v) builtin_ilog_u_nz(v)
 # elif  ULONG_MAX  >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_ul(v)
+#  define builtin_ilog64_nz(v) builtin_ilog_ul_nz(v)
 # elif  ULLONG_MAX >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_ull(v)
+#  define builtin_ilog64_nz(v) builtin_ilog_ull_nz(v)
 # endif
 
 #endif /* HAVE_BUILTIN_CLZ */
+
+#ifdef builtin_ilog_u_nz
+# define ilog_u(_v)   (builtin_ilog_u_nz(_v)&-!!(_v))
+# define ilog_u(_v)    builtin_ilog_u_nz(_v)
+#else
+# define ilog_u(_v)
+#endif
 
 #ifdef builtin_ilog8_nz
 # define ilog8(_v)    (builtin_ilog8_nz(_v)&-!!(_v))
@@ -143,7 +162,7 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 #else
   /* TODO: provide optimized 8bit versions of non-static ilog */
 # define ilog8_nz(_v) ilog8(_v)
-# define ilog8(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
+# define ilog8(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog8(_v))
 #endif
 
 #ifdef builtin_ilog16_nz
@@ -152,7 +171,7 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 #else
   /* TODO: provide optimized 16bit versions of non-static ilog */
 # define ilog16_nz(_v) ilog16(_v)
-# define ilog16(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
+# define ilog16(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog16(_v))
 #endif
 
 #ifdef builtin_ilog32_nz
@@ -183,5 +202,27 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  (((_v)&0xFFFF0000)?16+STATIC_ILOG4((_v)>>16):STATIC_ILOG4(_v))
 # define STATIC_ILOG6(_v) \
  (((_v)&0xFFFFFFFF00000000ULL)?32+STATIC_ILOG5((_v)>>32):STATIC_ILOG5(_v))
+
+/**
+ * ilog -
+ */
+#if HAVE_BUILTIN_CHOOSE_EXPR && HAVE_BUILTIN_TYPES_COMPATIBLE_P && HAVE_TYPEOF
+#define ilog(_v) (\
+	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint64_t),	\
+		ilog64(_v),								\
+	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint32_t),	\
+		ilog32(_v),								\
+	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint16_t),	\
+		ilog16(_v),								\
+	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint8_t),	\
+		ilog8(_v),								\
+	(void)0)))))
+#endif
+
+/**
+ * ilog_n - Calculate the interger log of _v given we know at most _bits bits are set in _v
+ *
+ */
+#define ilog_n(_v, _bits)
 
 #endif /* _ilog_H */
