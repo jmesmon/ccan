@@ -5,6 +5,11 @@
 #include <stdlib.h>
 
 /**
+ * crc16_ccitt - CCITT 16 bit crc
+ */
+uint_fast16_t crc16_ccitt(uint_fast16_t start_crc, uint_fast8_t byte);
+
+/**
  * crc32c - Castagnoli 32 bit crc of string of bytes
  * @start_crc: the initial crc (usually 0)
  * @buf: pointer to bytes

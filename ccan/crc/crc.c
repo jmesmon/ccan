@@ -305,3 +305,22 @@ const uint64_t *crc64_iso_table(void)
 
 	return fulltab;
 }
+
+static uint_fast8_t lo8(uint_fast16_t x)
+{
+    return x & 0xff;
+}
+
+static uint_fast8_t hi8(uint_fast16_t x)
+{
+    return x >> 8;
+}
+
+uint_fast16_t crc16_ccitt(uint_fast16_t crc, uint_fast8_t byte)
+{
+    data ^= lo8(crc);
+    data ^= data << 4;
+    return ((((uint_fast16_t) data << 8) | hi8(crc)) ^ (uint_fast8_t) (data >> 4)
+	    ^ ((uint_fast16_t) data << 3));
+}
+}
