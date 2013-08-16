@@ -5,6 +5,7 @@
 #include <ccan/likely/likely.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #define PER_LEVEL (1ULL << TIMER_LEVEL_BITS)
 
