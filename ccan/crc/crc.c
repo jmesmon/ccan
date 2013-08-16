@@ -316,11 +316,10 @@ static uint_fast8_t hi8(uint_fast16_t x)
     return x >> 8;
 }
 
-uint_fast16_t crc16_ccitt(uint_fast16_t crc, uint_fast8_t byte)
+uint_fast16_t crc16_ccitt(uint_fast16_t crc, uint_fast8_t data)
 {
     data ^= lo8(crc);
     data ^= data << 4;
     return ((((uint_fast16_t) data << 8) | hi8(crc)) ^ (uint_fast8_t) (data >> 4)
 	    ^ ((uint_fast16_t) data << 3));
-}
 }

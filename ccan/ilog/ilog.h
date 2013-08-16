@@ -149,11 +149,62 @@ u8_ret_t ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 #endif /* HAVE_BUILTIN_CLZ */
 
+
 #ifdef builtin_ilog_u_nz
 # define ilog_u(_v)   (builtin_ilog_u_nz(_v)&-!!(_v))
-# define ilog_u(_v)    builtin_ilog_u_nz(_v)
+# define ilog_u_nz(_v)    builtin_ilog_u_nz(_v)
 #else
-# define ilog_u(_v)
+# if   0xff       >= UINT_MAX
+#  define ilog_u(_v) ilog8(_v)
+#  define ilog_u_nz(_v) ilog8_nz(_v)
+# elif 0xffff     >= UINT_MAX
+#  define ilog_u(_v) ilog16(_v)
+#  define ilog_u_nz(_v) ilog16_nz(_v)
+# elif 0xffffffff >= UINT_MAX
+#  define ilog_u(_v) ilog32(_v)
+#  define ilog_u_nz(_v) ilog32_nz(_v)
+# elif 0xffffffffffffffff >= UINT_MAX
+#  define ilog_u(_v) ilog64(_v)
+#  define ilog_u_nz(_v) ilog64_nz(_v)
+# endif
+#endif
+
+#ifdef builtin_ilog_ul_nz
+# define ilog_ul(_v)   (builtin_ilog_ul_nz(_v)&-!!(_v))
+# define ilog_ul_nz(_v)    builtin_ilog_ul_nz(_v)
+#else
+# if   0xff       >= UINT_MAX
+#  define ilog_ul(_v) ilog8(_v)
+#  define ilog_ul_nz(_v) ilog8_nz(_v)
+# elif 0xffff     >= UINT_MAX
+#  define ilog_ul(_v) ilog16(_v)
+#  define ilog_ul_nz(_v) ilog16_nz(_v)
+# elif 0xffffffff >= UINT_MAX
+#  define ilog_ul(_v) ilog32(_v)
+#  define ilog_ul_nz(_v) ilog32_nz(_v)
+# elif 0xffffffffffffffff >= UINT_MAX
+#  define ilog_ul(_v) ilog64(_v)
+#  define ilog_ul_nz(_v) ilog64_nz(_v)
+# endif
+#endif
+
+#ifdef builtin_ilog_ull_nz
+# define ilog_ull(_v)   (builtin_ilog_ull_nz(_v)&-!!(_v))
+# define ilog_ull_nz(_v)    builtin_ilog_ull_nz(_v)
+#else
+# if   0xff       >= UINT_MAX
+#  define ilog_ull(_v) ilog8(_v)
+#  define ilog_ull_nz(_v) ilog8_nz(_v)
+# elif 0xffff     >= UINT_MAX
+#  define ilog_ull(_v) ilog16(_v)
+#  define ilog_ull_nz(_v) ilog16_nz(_v)
+# elif 0xffffffff >= UINT_MAX
+#  define ilog_ull(_v) ilog32(_v)
+#  define ilog_ull_nz(_v) ilog32_nz(_v)
+# elif 0xffffffffffffffff >= UINT_MAX
+#  define ilog_ull(_v) ilog64(_v)
+#  define ilog_ull_nz(_v) ilog64_nz(_v)
+# endif
 #endif
 
 #ifdef builtin_ilog8_nz
