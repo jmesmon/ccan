@@ -1,0 +1,66 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * pp_ti - preprocessor [time] type information
+ *
+ * Provide some information about the base types to the preprocessor. Note:
+ * this example isn't designed to be convincing. See ilog for some actual usage.
+ *
+ * Example:
+ *	#include <ccan/pp_ti/pp_ti.h>
+ *	#include <ccan/compiler/compiler.h>
+ *	#include <stdint.h>
+ *	UNNEEDED static int do_u16(uint16_t x)
+ *	{
+ *		return 1;
+ *	}
+ *	UNNEEDED static int do_u32(uint32_t x)
+ *	{
+ *		return 2;
+ *	}
+ *	UNNEEDED static int do_u64(uint64_t x)
+ *	{
+ *		return 3;
+ *	}
+ *	UNNEEDED static int do_ull(unsigned long long x)
+ *	{
+ *		return 4;
+ *	}
+ *	UNNEEDED static int do_ul(unsigned long x)
+ *	{
+ *		return 5;
+ *	}
+ *	UNNEEDED static int do_u(unsigned x)
+ *	{
+ *		return 6;
+ *	}
+ *	#define DO__(t) do_u##t
+ *	#define DO_(t) DO__(t)
+ *	#define DO_BITS(t) DO_(INT_TO_BITS(t))
+ *	#define DO_INT(t) DO_(BITS_TO_INT(t))
+ *	int main(void)
+ *	{
+ *		return DO_BITS(l)(1ul) * DO_INT(64)((uint64_t)3);
+ *	}
+ *
+ * License: CC0 (Public Domain)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/pp\n");
+                return 0;
+        }
+
+	return 1;
+}
