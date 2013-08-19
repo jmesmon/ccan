@@ -50,7 +50,7 @@ static inline u8_ret_t ceil_ilog_zu(size_t _v) {
 		uint16_t: ceil_ilog_16(v),	\
 		uint32_t: ceil_ilog_32(v),	\
 		uint64_t: ceil_ilog_64(v),	\
-		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		default: (void)0 \
 		)
 #elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
 #define ceil_ilog(v)								\
@@ -58,14 +58,14 @@ static inline u8_ret_t ceil_ilog_zu(size_t _v) {
 	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ceil_ilog_16(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ceil_ilog_32(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ceil_ilog_64(v) :	\
-	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+	 (void)0 )))
 #else
 #define ceil_ilog(v)						\
 		(sizeof(v) == sizeof(uint8_t) ? ceil_ilog_8(v)	\
 	:	(sizeof(v) == sizeof(uint16_t)? ceil_ilog_16(v)	\
 	:	(sizeof(v) == sizeof(uint32_t)? ceil_ilog_32(v)	\
 	:	(sizeof(v) == sizeof(uint64_t)? ceil_ilog_64(v)	\
-	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+	:	(void)0))))
 #endif
 
 /*** floor(log2(_v)) + 1 ***/
@@ -127,7 +127,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 		uint16_t: ilog_16(v),	\
 		uint32_t: ilog_32(v),	\
 		uint64_t: ilog_64(v),	\
-		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		default: (void)0 \
 		)
 #elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
 #define ilog(v)								\
@@ -135,14 +135,14 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ilog_16(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ilog_32(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ilog_64(v) :	\
-	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+	 (void)0 )))
 #else
 #define ilog(v)						\
 		(sizeof(v) == sizeof(uint8_t) ? ilog_8(v)	\
 	:	(sizeof(v) == sizeof(uint16_t)? ilog_16(v)	\
 	:	(sizeof(v) == sizeof(uint32_t)? ilog_32(v)	\
 	:	(sizeof(v) == sizeof(uint64_t)? ilog_64(v)	\
-	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+	:	(void)0))))
 #endif
 
 #if HAVE_C11_GENERIC
@@ -152,7 +152,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 		uint16_t: ilog_16_nz(v),	\
 		uint32_t: ilog_32_nz(v),	\
 		uint64_t: ilog_64_nz(v),	\
-		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		default: (void)0 \
 		)
 #elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
 #define ilog_nz(v)								\
@@ -160,18 +160,18 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ilog_16_nz(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ilog_32_nz(v) :	\
 	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ilog_64_nz(v) :	\
-	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+	 (void)0 )))
 #else
 #define ilog_nz(v)						\
 		(sizeof(v) == sizeof(uint8_t) ? ilog_8_nz(v)	\
 	:	(sizeof(v) == sizeof(uint16_t)? ilog_16_nz(v)	\
 	:	(sizeof(v) == sizeof(uint32_t)? ilog_32_nz(v)	\
 	:	(sizeof(v) == sizeof(uint64_t)? ilog_64_nz(v)	\
-	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+	:	(void)0))))
 #endif
 
 /**
- * ilog32 - Integer binary logarithm of a 32-bit value.
+ * ilog_32 - Integer binary logarithm of a 32-bit value.
  * @_v: A 32-bit value.
  * Returns floor(log2(_v))+1, or 0 if _v==0.
  * This is the number of bits that would be required to represent _v in two's
@@ -179,55 +179,55 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
  * Note that many uses will resolve to the fast macro version instead.
  *
  * See Also:
- *	ilog32_nz(), ilog64()
+ *	ilog_32_nz(), ilog64()
  *
  * Example:
  *	// Rounds up to next power of 2 (if not a power of 2).
  *	static uint32_t round_up32(uint32_t i)
  *	{
  *		assert(i != 0);
- *		return 1U << ilog32(i-1);
+ *		return 1U << ilog_32(i-1);
  *	}
  */
 
 /**
- * ilog32_nz - Integer binary logarithm of a non-zero 32-bit value.
+ * ilog_32_nz - Integer binary logarithm of a non-zero 32-bit value.
  * @_v: A 32-bit value.
  * Returns floor(log2(_v))+1, or undefined if _v==0.
  * This is the number of bits that would be required to represent _v in two's
  *  complement notation with all of the leading zeros stripped.
  * Note that many uses will resolve to the fast macro version instead.
  * See Also:
- *	ilog32(), ilog64_nz()
+ *	ilog_32(), ilog_64_nz()
  * Example:
  *	// Find Last Set (ie. highest bit set, 0 to 31).
  *	static uint32_t fls32(uint32_t i)
  *	{
  *		assert(i != 0);
- *		return ilog32_nz(i) - 1;
+ *		return ilog_32_nz(i) - 1;
  *	}
  */
 
 /**
- * ilog64 - Integer binary logarithm of a 64-bit value.
+ * ilog_64 - Integer binary logarithm of a 64-bit value.
  * @_v: A 64-bit value.
  * Returns floor(log2(_v))+1, or 0 if _v==0.
  * This is the number of bits that would be required to represent _v in two's
  *  complement notation with all of the leading zeros stripped.
  * Note that many uses will resolve to the fast macro version instead.
  * See Also:
- *	ilog64_nz(), ilog32()
+ *	ilog64_nz(), ilog_32()
  */
 
 /**
- * ilog64_nz - Integer binary logarithm of a non-zero 64-bit value.
+ * ilog_64_nz - Integer binary logarithm of a non-zero 64-bit value.
  * @_v: A 64-bit value.
  * Returns floor(log2(_v))+1, or undefined if _v==0.
  * This is the number of bits that would be required to represent _v in two's
  *  complement notation with all of the leading zeros stripped.
  * Note that many uses will resolve to the fast macro version instead.
  * See Also:
- *	ilog64(), ilog32_nz()
+ *	ilog_64(), ilog_32_nz()
  */
 
 /**
@@ -237,7 +237,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
  * This is the number of bits that would be required to represent _v in two's
  *  complement notation with all of the leading zeros stripped.
  * This macro should only be used when you need a compile-time constant,
- * otherwise ilog32 or ilog32_nz are just as fast and more flexible.
+ * otherwise ilog_32 or ilog_32_nz are just as fast and more flexible.
  *
  * Example:
  *	#define MY_PAGE_SIZE	4096
@@ -251,7 +251,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
  * This is the number of bits that would be required to represent _v in two's
  *  complement notation with all of the leading zeros stripped.
  * This macro should only be used when you need a compile-time constant,
- * otherwise ilog64 or ilog64_nz are just as fast and more flexible.
+ * otherwise ilog_64 or ilog_64_nz are just as fast and more flexible.
  */
 
 #define STATIC_ILOG_8(_v)  STATIC_ILOG3((uint8_t)(_v))
