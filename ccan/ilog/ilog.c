@@ -24,25 +24,29 @@
 #undef ceil_ilog_16
 #undef ceil_ilog_32
 #undef ceil_ilog_64
+
 #undef ceil_ilog_8_nz
 #undef ceil_ilog_16_nz
 #undef ceil_ilog_32_nz
 #undef ceil_ilog_64_nz
 
 #undef ilog_8
-#undef ilog_8_nz
 #undef ilog_16
-#undef ilog_16_nz
-#undef ilog_32_nz
 #undef ilog_32
-#undef ilog_64_nz
 #undef ilog_64
 
+#undef ilog_8_nz
+#undef ilog_16_nz
+#undef ilog_32_nz
+#undef ilog_64_nz
+
 u8_ret_t ilog_32(uint32_t _v){
+# if defined(builtin_ilog_32)
+  return builtin_ilog_32(_v)
 /*On a Pentium M, this branchless version tested as the fastest version without
    multiplications on 1,000,000,000 random 32-bit integers, edging out a
    similar version with branches, and a 256-entry LUT version.*/
-# if defined(ILOG_NODEBRUIJN)
+# elif defined(ILOG_NODEBRUIJN)
   u8_ret_t ret;
   int m;
   ret=_v>0;
@@ -85,7 +89,9 @@ u8_ret_t ilog_32_nz(uint32_t _v)
 }
 
 u8_ret_t ilog_64(uint64_t _v){
-# if defined(ILOG_NODEBRUIJN)
+# if defined(builtin_ilog_64)
+  return builtin_ilog_64(_v);
+# elif defined(ILOG_NODEBRUIJN)
   uint32_t v;
   u8_ret_t ret;
   int      m;
@@ -156,6 +162,9 @@ u8_ret_t ilog_64_nz(uint64_t _v)
 /* from http://stackoverflow.com/questions/3272424/compute-fast-log-base-2-ceiling */
 u8_ret_t ceil_ilog_64(uint64_t x)
 {
+#if defined(builtin_ceil_ilog_64)
+  return builtin_ceil_ilog_64(x);
+#else
   static const unsigned long long t[6] = {
     0xFFFFFFFF00000000ull,
     0x00000000FFFF0000ull,
@@ -177,5 +186,6 @@ u8_ret_t ceil_ilog_64(uint64_t x)
   }
 
   return y;
+#endif
 }
 
