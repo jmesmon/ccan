@@ -128,6 +128,8 @@ static struct test tests[] = {
 	  "return __builtin_types_compatible_p(char *, int) ? 1 : 0;" },
 	{ "HAVE_BYTESWAP_H", OUTSIDE_MAIN, NULL, NULL,
 	  "#include <byteswap.h>\n" },
+	{ "HAVE_C11_GENERIC", INSIDE_MAIN, NULL, NULL,
+	  "return _Generic(1, double: -1, default: 0);" },
 	{ "HAVE_CLOCK_GETTIME",
 	  DEFINES_FUNC, "HAVE_STRUCT_TIMESPEC", NULL,
 	  "#include <time.h>\n"
