@@ -6,6 +6,8 @@
 # include <limits.h>
 # include <ccan/compiler/compiler.h>
 # include <ccan/ret_type/ret_type.h>
+# include <ccan/bits/bits.h>
+# include <ccan/pp/pp.h>
 
 /**
  * ceil_ilog_* - calculate ceiling(log2(_v))
@@ -91,6 +93,56 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 #define ilog_ull_nz ILOG_NZ(ull)
 #define ilog_zu_nz  ILOG_NZ(zu)
 
+#if HAVE_C11_GENERIC
+#define ilog(v)				\
+	_Generic((v),				\
+		uint8_t: ilog_8(v),	\
+		uint16_t: ilog_16(v),	\
+		uint32_t: ilog_32(v),	\
+		uint64_t: ilog_64(v),	\
+		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		)
+#elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
+#define ilog(v)								\
+	__builtin_types_compatible_p(typeof(v), uint8_t) ? ilog_8(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ilog_16(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ilog_32(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ilog_64(v) :	\
+	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+#else
+#define ilog(v)						\
+		(sizeof(v) == sizeof(uint8_t) ? ilog_8(v)	\
+	:	(sizeof(v) == sizeof(uint16_t)? ilog_16(v)	\
+	:	(sizeof(v) == sizeof(uint32_t)? ilog_32(v)	\
+	:	(sizeof(v) == sizeof(uint64_t)? ilog_64(v)	\
+	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+#endif
+
+#if HAVE_C11_GENERIC
+#define ilog_nz(v)				\
+	_Generic((v),				\
+		uint8_t: ilog_8_nz(v),	\
+		uint16_t: ilog_16_nz(v),	\
+		uint32_t: ilog_32_nz(v),	\
+		uint64_t: ilog_64_nz(v),	\
+		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		)
+#elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
+#define ilog_nz(v)								\
+	__builtin_types_compatible_p(typeof(v), uint8_t) ? ilog_8_nz(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ilog_16_nz(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ilog_32_nz(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ilog_64_nz(v) :	\
+	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+#else
+#define ilog_nz(v)						\
+		(sizeof(v) == sizeof(uint8_t) ? ilog_8_nz(v)	\
+	:	(sizeof(v) == sizeof(uint16_t)? ilog_16_nz(v)	\
+	:	(sizeof(v) == sizeof(uint32_t)? ilog_32_nz(v)	\
+	:	(sizeof(v) == sizeof(uint64_t)? ilog_64_nz(v)	\
+	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+#endif
+
 /**
  * ilog32 - Integer binary logarithm of a 32-bit value.
  * @_v: A 32-bit value.
@@ -164,7 +216,6 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
  *	#define MY_PAGE_SIZE	4096
  *	#define MY_PAGE_BITS	(STATIC_ILOG_32(PAGE_SIZE) - 1)
  */
-#define STATIC_ILOG_32(_v) (STATIC_ILOG5((uint32_t)(_v)))
 
 /**
  * STATIC_ILOG_64 - The integer logarithm of an (unsigned, 64-bit) constant.
@@ -175,7 +226,19 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
  * This macro should only be used when you need a compile-time constant,
  * otherwise ilog64 or ilog64_nz are just as fast and more flexible.
  */
-#define STATIC_ILOG_64(_v) (STATIC_ILOG6((uint64_t)(_v)))
+
+#define STATIC_ILOG_8(_v)  STATIC_ILOG3((uint8_t)(_v))
+#define STATIC_ILOG_16(_v) STATIC_ILOG4((uint16_t)(_v))
+#define STATIC_ILOG_32(_v) STATIC_ILOG5((uint32_t)(_v))
+#define STATIC_ILOG_64(_v) STATIC_ILOG6((uint64_t)(_v))
+
+#define STATIC_ILOG__(tt) STATIC_ILOG_##tt
+#define STATIC_ILOG_(tt)  STATIC_ILOG__(BITS_##tt)
+
+#define STATIC_ILOG_zu(_v)  STATIC_ILOG_(zu)
+#define STATIC_ILOG_u(_v)   STATIC_ILOG_(u)
+#define STATIC_ILOG_ul(_v)  STATIC_ILOG_(ul)
+#define STATIC_ILOG_ull(_v) STATIC_ILOG_(ull)
 
 /* Private implementation details */
 
@@ -192,133 +255,74 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 # define builtin_ilog_u_nz(v)   __ILOG_B(v, unsigned, )
 # define builtin_ilog_ul_nz(v)  __ILOG_B(v, unsigned long, l)
 # define builtin_ilog_ull_nz(v) __ILOG_B(v, unsigned long long, ll)
+# define builtin_ilog__nz(t,v) CAT3(builtin_ilog_,EV(UINT_##t),_nz)(v)
 
-# if   UINT_MAX   >= SIZE_MAX
-#  define builtin_ilog_zu_nz(v) builtin_ilog_u_nz(v)
-# elif ULONG_MAX  >= SIZE_MAX
-#  define builtin_ilog_zu_nz(v) builtin_ilog_ul_nz(v)
-# elif ULLONG_MAX >= SIZE_MAX
-#  define builtin_ilog_zu_nz(v) builtin_ilog_ull_nz(v)
-# endif
-
-# if   UINT_MAX   >= 0xff
-#  define builtin_ilog8_nz(v) builtin_ilog_u_nz(v)
-# endif
-
-# if   UINT_MAX   >= 0xffff
-#  define builtin_ilog16_nz(v) builtin_ilog_u_nz(v)
-# elif ULONG_MAX  >= 0xffff
-#  define builtin_ilog16_nz(v) builtin_ilog_ul_nz(v)
-# endif
-
-# if   UINT_MAX   >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_u_nz(v)
-# elif ULONG_MAX  >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_ul_nz(v)
-# elif ULLONG_MAX >= 0xffffffff
-#  define builtin_ilog32_nz(v) builtin_ilog_ull_nz(v)
-# endif
-
-# if    UINT_MAX   >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_u_nz(v)
-# elif  ULONG_MAX  >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_ul_nz(v)
-# elif  ULLONG_MAX >= 0xffffffffffffffff
-#  define builtin_ilog64_nz(v) builtin_ilog_ull_nz(v)
-# endif
+# define builtin_ilog_zu_nz(v) builtin_ilog__nz(zu,v)
+# define builtin_ilog_8_nz(v)  builtin_ilog__nz(8 ,v)
+# define builtin_ilog_16_nz(v) builtin_ilog__nz(16,v)
+# define builtin_ilog_32_nz(v) builtin_ilog__nz(32,v)
+# define builtin_ilog_64_nz(v) builtin_ilog__nz(64,v)
 
 #endif /* HAVE_BUILTIN_CLZ */
 
+/* given a uint type suffix (u, ul, ull), call the appropriate ilog() */
+# define ilog__(t, _v) CAT2(ilog_,EV(BITS_##t))(_v)
+# define ilog__nz(_v) CAT3(ilog_,EV(BITS_##t),_nz)(_v)
 
 #ifdef builtin_ilog_u_nz
-# define ilog_u(_v)   (builtin_ilog_u_nz(_v)&-!!(_v))
-# define ilog_u_nz(_v)    builtin_ilog_u_nz(_v)
+# define ilog_u(_v)	(builtin_ilog_u_nz(_v)&-!!(_v))
+# define ilog_u_nz(_v)	builtin_ilog_u_nz(_v)
 #else
-# if   0xff       >= UINT_MAX
-#  define ilog_u(_v) ilog8(_v)
-#  define ilog_u_nz(_v) ilog8_nz(_v)
-# elif 0xffff     >= UINT_MAX
-#  define ilog_u(_v) ilog16(_v)
-#  define ilog_u_nz(_v) ilog16_nz(_v)
-# elif 0xffffffff >= UINT_MAX
-#  define ilog_u(_v) ilog32(_v)
-#  define ilog_u_nz(_v) ilog32_nz(_v)
-# elif 0xffffffffffffffff >= UINT_MAX
-#  define ilog_u(_v) ilog64(_v)
-#  define ilog_u_nz(_v) ilog64_nz(_v)
-# endif
+# define ilog_u(_v)	ilog__(u,_v)
+# define ilog_u_nz(_v)	ilog__nz(u,_v)
 #endif
 
 #ifdef builtin_ilog_ul_nz
-# define ilog_ul(_v)   (builtin_ilog_ul_nz(_v)&-!!(_v))
-# define ilog_ul_nz(_v)    builtin_ilog_ul_nz(_v)
+# define ilog_ul(_v)	(builtin_ilog_ul_nz(_v)&-!!(_v))
+# define ilog_ul_nz(_v)	builtin_ilog_ul_nz(_v)
 #else
-# if   0xff       >= UINT_MAX
-#  define ilog_ul(_v) ilog8(_v)
-#  define ilog_ul_nz(_v) ilog8_nz(_v)
-# elif 0xffff     >= UINT_MAX
-#  define ilog_ul(_v) ilog16(_v)
-#  define ilog_ul_nz(_v) ilog16_nz(_v)
-# elif 0xffffffff >= UINT_MAX
-#  define ilog_ul(_v) ilog32(_v)
-#  define ilog_ul_nz(_v) ilog32_nz(_v)
-# elif 0xffffffffffffffff >= UINT_MAX
-#  define ilog_ul(_v) ilog64(_v)
-#  define ilog_ul_nz(_v) ilog64_nz(_v)
-# endif
+# define ilog_ul(_v)	ilog__(ul,_v)
+# define ilog_ul_nz(_v) ilog__nz(ul,_v)
 #endif
 
 #ifdef builtin_ilog_ull_nz
-# define ilog_ull(_v)   (builtin_ilog_ull_nz(_v)&-!!(_v))
-# define ilog_ull_nz(_v)    builtin_ilog_ull_nz(_v)
+# define ilog_ull(_v)		(builtin_ilog_ull_nz(_v)&-!!(_v))
+# define ilog_ull_nz(_v)	builtin_ilog_ull_nz(_v)
 #else
-# if   0xff       >= UINT_MAX
-#  define ilog_ull(_v) ilog8(_v)
-#  define ilog_ull_nz(_v) ilog8_nz(_v)
-# elif 0xffff     >= UINT_MAX
-#  define ilog_ull(_v) ilog16(_v)
-#  define ilog_ull_nz(_v) ilog16_nz(_v)
-# elif 0xffffffff >= UINT_MAX
-#  define ilog_ull(_v) ilog32(_v)
-#  define ilog_ull_nz(_v) ilog32_nz(_v)
-# elif 0xffffffffffffffff >= UINT_MAX
-#  define ilog_ull(_v) ilog64(_v)
-#  define ilog_ull_nz(_v) ilog64_nz(_v)
-# endif
+# define ilog_ull(_v)		ilog__(ull,_v)
+# define ilog_ull_nz(_v)	ilog__nz(ull,_v)
 #endif
 
 #ifdef builtin_ilog8_nz
-# define ilog8(_v)    (builtin_ilog8_nz(_v)&-!!(_v))
-# define ilog8_nz(_v)  builtin_ilog8_nz(_v)
+# define ilog_8(_v)    (builtin_ilog_8_nz(_v)&-!!(_v))
+# define ilog_8_nz(_v)  builtin_ilog_8_nz(_v)
 #else
-  /* TODO: provide optimized 8bit versions of non-static ilog */
-# define ilog8_nz(_v) ilog8(_v)
-# define ilog8(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog8(_v))
+# define ilog_8_nz(_v)	ilog_8(_v)
+# define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog8(_v))
 #endif
 
 #ifdef builtin_ilog16_nz
-# define ilog16(_v)    (builtin_ilog16_nz(_v)&-!!(_v))
-# define ilog16_nz(_v) builtin_ilog16_nz(_v)
+# define ilog_16(_v)    (builtin_ilog_16_nz(_v)&-!!(_v))
+# define ilog_16_nz(_v) builtin_ilog_16_nz(_v)
 #else
-  /* TODO: provide optimized 16bit versions of non-static ilog */
-# define ilog16_nz(_v) ilog16(_v)
-# define ilog16(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog16(_v))
+# define ilog_16_nz(_v)	ilog_16(_v)
+# define ilog_16(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog_16(_v))
 #endif
 
 #ifdef builtin_ilog32_nz
-#define ilog32(_v) (builtin_ilog32_nz(_v)&-!!(_v))
-#define ilog32_nz(_v) builtin_ilog32_nz(_v)
+#define ilog_32(_v)	(builtin_ilog_32_nz(_v)&-!!(_v))
+#define ilog_32_nz(_v)	builtin_ilog_32_nz(_v)
 #else
-#define ilog32_nz(_v) ilog32(_v)
-#define ilog32(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
+#define ilog_32_nz(_v)	ilog_32(_v)
+#define ilog_32(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog_32(_v))
 #endif /* builtin_ilog32_nz */
 
 #ifdef builtin_ilog64_nz
-#define ilog64(_v) (builtin_ilog64_nz(_v)&-!!(_v))
-#define ilog64_nz(_v) builtin_ilog64_nz(_v)
+#define ilog_64(_v)	(builtin_ilog_64_nz(_v)&-!!(_v))
+#define ilog_64_nz(_v)	builtin_ilog_64_nz(_v)
 #else
-#define ilog64_nz(_v) ilog64(_v)
-#define ilog64(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_64(_v) : ilog64(_v))
+#define ilog_64_nz(_v)	ilog_64(_v)
+#define ilog_64(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_64(_v) : ilog64(_v))
 #endif /* builtin_ilog64_nz */
 
 /* Macros for evaluating compile-time constant ilog. */
@@ -333,27 +337,5 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
  (((_v)&0xFFFF0000)?16+STATIC_ILOG4((_v)>>16):STATIC_ILOG4(_v))
 # define STATIC_ILOG6(_v) \
  (((_v)&0xFFFFFFFF00000000ULL)?32+STATIC_ILOG5((_v)>>32):STATIC_ILOG5(_v))
-
-/**
- * ilog -
- */
-#if HAVE_BUILTIN_CHOOSE_EXPR && HAVE_BUILTIN_TYPES_COMPATIBLE_P && HAVE_TYPEOF
-#define ilog(_v) (\
-	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint64_t),	\
-		ilog64(_v),								\
-	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint32_t),	\
-		ilog32(_v),								\
-	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint16_t),	\
-		ilog16(_v),								\
-	__builtin_choose_expr(__builtin_types_compatible_p(__typeof__(_v), uint8_t),	\
-		ilog8(_v),								\
-	(void)0)))))
-#endif
-
-/**
- * ilog_n - Calculate the interger log of _v given we know at most _bits bits are set in _v
- *
- */
-#define ilog_n(_v, _bits)
 
 #endif /* _ilog_H */
