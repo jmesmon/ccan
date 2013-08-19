@@ -2,6 +2,7 @@
 #if !defined(_ilog_H)
 # define _ilog_H (1)
 # include "config.h"
+# include <stddef.h>
 # include <stdint.h>
 # include <limits.h>
 # include <ccan/compiler/compiler.h>
@@ -17,21 +18,30 @@ u8_ret_t ceil_ilog_16(uint16_t _v) CONST_FUNCTION;
 u8_ret_t ceil_ilog_32(uint32_t _v) CONST_FUNCTION;
 u8_ret_t ceil_ilog_64(uint64_t _v) CONST_FUNCTION;
 
-#if 0
 /* These are all aliased to the bit-width specific functions */
-u8_ret_t ceil_ilog_u  (unsigned           _v) CONST_FUNCTION;
-u8_ret_t ceil_ilog_ul (unsigned long      _v) CONST_FUNCTION;
-u8_ret_t ceil_ilog_ull(unsigned long long _v) CONST_FUNCTION;
-u8_ret_t ceil_ilog_zu (size_t             _v) CONST_FUNCTION;
-#endif
+static inline u8_ret_t ceil_ilog_u  (unsigned           _v) CONST_FUNCTION;
+static inline u8_ret_t ceil_ilog_ul (unsigned long      _v) CONST_FUNCTION;
+static inline u8_ret_t ceil_ilog_ull(unsigned long long _v) CONST_FUNCTION;
+static inline u8_ret_t ceil_ilog_zu (size_t             _v) CONST_FUNCTION;
 
-#define CEIL_ILOG_(sz) ceil_ilog_##sz
+#define CEIL_ILOG__(sz) ceil_ilog_##sz
+#define CEIL_ILOG_(sz) CEIL_ILOG__(sz)
 #define CEIL_ILOG(sz) CEIL_ILOG_(BITS_##sz)
 
-#define ceil_ilog_u   CEIL_ILOG(u)
-#define ceil_ilog_ul  CEIL_ILOG(ul)
-#define ceil_ilog_ull CEIL_ILOG(ull)
-#define ceil_ilog_zu  CEIL_ILOG(zu)
+/* These cannot be defines due to later defines to wrap for compile time
+ * evaluation */
+static inline u8_ret_t ceil_ilog_u(unsigned _v) {
+	return CEIL_ILOG(u)(_v);
+}
+static inline u8_ret_t ceil_ilog_ul(unsigned long _v) {
+	return CEIL_ILOG(ul)(_v);
+}
+static inline u8_ret_t ceil_ilog_ull(unsigned long long _v) {
+	return CEIL_ILOG(ull)(_v);
+}
+static inline u8_ret_t ceil_ilog_zu(size_t _v) {
+	return CEIL_ILOG(zu)(_v);
+}
 
 #if HAVE_C11_GENERIC
 #define ceil_ilog(v)				\
@@ -70,28 +80,45 @@ u8_ret_t ilog_16_nz(uint16_t _v) CONST_FUNCTION;
 u8_ret_t ilog_32_nz(uint32_t _v) CONST_FUNCTION;
 u8_ret_t ilog_64_nz(uint64_t _v) CONST_FUNCTION;
 
-#if 0
 /* These are all aliased to the bit-width specific functions */
-u8_ret_t ilog_u  (unsigned           _v) CONST_FUNCTION;
-u8_ret_t ilog_ul (unsigned long      _v) CONST_FUNCTION;
-u8_ret_t ilog_ull(unsigned long long _v) CONST_FUNCTION;
-u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
-#endif
+static inline u8_ret_t ilog_u  (unsigned           _v) CONST_FUNCTION;
+static inline u8_ret_t ilog_ul (unsigned long      _v) CONST_FUNCTION;
+static inline u8_ret_t ilog_ull(unsigned long long _v) CONST_FUNCTION;
+static inline u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 
-#define ILOG_(sz) ilog_##sz
+#define ILOG__(sz) ilog_##sz
+#define ILOG_(sz) ILOG__(sz)
 #define ILOG(sz) ILOG_(BITS_##sz)
-#define ILOG_NZ_(sz) ilog_##sz##_nz
+#define ILOG_NZ__(sz) ilog_##sz##_nz
+#define ILOG_NZ_(sz) ILOG__(sz)
 #define ILOG_NZ(sz) ILOG_(BITS_##sz)
 
-#define ilog_u   ILOG(u)
-#define ilog_ul  ILOG(ul)
-#define ilog_ull ILOG(ull)
-#define ilog_zu  ILOG(zu)
-
-#define ilog_u_nz   ILOG_NZ(u)
-#define ilog_ul_nz  ILOG_NZ(ul)
-#define ilog_ull_nz ILOG_NZ(ull)
-#define ilog_zu_nz  ILOG_NZ(zu)
+/* These cannot be defines due to later defines to wrap for compile time
+ * evaluation */
+static inline u8_ret_t ilog_u(unsigned _v) {
+	return ILOG(u)(_v);
+}
+static inline u8_ret_t ilog_ul(unsigned long _v) {
+	return ILOG(ul)(_v);
+}
+static inline u8_ret_t ilog_ull(unsigned long long _v) {
+	return ILOG(ull)(_v);
+}
+static inline u8_ret_t ilog_zu(size_t _v) {
+	return ILOG(zu)(_v);
+}
+static inline u8_ret_t ilog_u_nz(unsigned _v) {
+	return ILOG_NZ(u)(_v);
+}
+static inline u8_ret_t ilog_ul_nz(unsigned long _v) {
+	return ILOG_NZ(ul)(_v);
+}
+static inline u8_ret_t ilog_ull_nz(unsigned long long _v) {
+	return ILOG_NZ(ull)(_v);
+}
+static inline u8_ret_t ilog_zu_nz(size_t _v) {
+	return ILOG_NZ(zu)(_v);
+}
 
 #if HAVE_C11_GENERIC
 #define ilog(v)				\
