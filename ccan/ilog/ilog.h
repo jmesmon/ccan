@@ -7,8 +7,89 @@
 # include <ccan/compiler/compiler.h>
 # include <ccan/ret_type/ret_type.h>
 
-u8_ret_t ilog16(uint16_t _v) CONST_FUNCTION;
-u8_ret_t ilog8(uint16_t _v) CONST_FUNCTION;
+/**
+ * ceil_ilog_* - calculate ceiling(log2(_v))
+ */
+u8_ret_t ceil_ilog_8 (uint8_t  _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_16(uint16_t _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_32(uint32_t _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_64(uint64_t _v) CONST_FUNCTION;
+
+#if 0
+/* These are all aliased to the bit-width specific functions */
+u8_ret_t ceil_ilog_u  (unsigned           _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_ul (unsigned long      _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_ull(unsigned long long _v) CONST_FUNCTION;
+u8_ret_t ceil_ilog_zu (size_t             _v) CONST_FUNCTION;
+#endif
+
+#define CEIL_ILOG_(sz) ceil_ilog_##sz
+#define CEIL_ILOG(sz) CEIL_ILOG_(BITS_##sz)
+
+#define ceil_ilog_u   CEIL_ILOG(u)
+#define ceil_ilog_ul  CEIL_ILOG(ul)
+#define ceil_ilog_ull CEIL_ILOG(ull)
+#define ceil_ilog_zu  CEIL_ILOG(zu)
+
+#if HAVE_C11_GENERIC
+#define ceil_ilog(v)				\
+	_Generic((v),				\
+		uint8_t: ceil_ilog_8(v),	\
+		uint16_t: ceil_ilog_16(v),	\
+		uint32_t: ceil_ilog_32(v),	\
+		uint64_t: ceil_ilog_64(v),	\
+		default: BUILD_FAILURE_WITH_FALLBACK_RUNTIME \
+		)
+#elif HAVE_BUILTIN_TYPES_COMPATIBLE_P
+#define ceil_ilog(v)								\
+	__builtin_types_compatible_p(typeof(v), uint8_t) ? ceil_ilog_8(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint16_t) ? ceil_ilog_16(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint32_t) ? ceil_ilog_32(v) :	\
+	(__builtin_types_compatible_p(typeof(v), uint64_t) ? ceil_ilog_64(v) :	\
+	 BUILD_FAILURE_WITH_FALLBACK_RUNTIME )))
+#else
+#define ceil_ilog(v)						\
+		(sizeof(v) == sizeof(uint8_t) ? ceil_ilog_8(v)	\
+	:	(sizeof(v) == sizeof(uint16_t)? ceil_ilog_16(v)	\
+	:	(sizeof(v) == sizeof(uint32_t)? ceil_ilog_32(v)	\
+	:	(sizeof(v) == sizeof(uint64_t)? ceil_ilog_64(v)	\
+	:	BUILD_FAILURE_WITH_FALLBACK_RUNTIME))))
+#endif
+
+/*** floor(log2(_v)) + 1 ***/
+
+u8_ret_t ilog_8 (uint8_t  _v) CONST_FUNCTION;
+u8_ret_t ilog_16(uint16_t _v) CONST_FUNCTION;
+u8_ret_t ilog_32(uint32_t _v) CONST_FUNCTION;
+u8_ret_t ilog_64(uint64_t _v) CONST_FUNCTION;
+
+u8_ret_t ilog_8_nz (uint8_t  _v) CONST_FUNCTION;
+u8_ret_t ilog_16_nz(uint16_t _v) CONST_FUNCTION;
+u8_ret_t ilog_32_nz(uint32_t _v) CONST_FUNCTION;
+u8_ret_t ilog_64_nz(uint64_t _v) CONST_FUNCTION;
+
+#if 0
+/* These are all aliased to the bit-width specific functions */
+u8_ret_t ilog_u  (unsigned           _v) CONST_FUNCTION;
+u8_ret_t ilog_ul (unsigned long      _v) CONST_FUNCTION;
+u8_ret_t ilog_ull(unsigned long long _v) CONST_FUNCTION;
+u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
+#endif
+
+#define ILOG_(sz) ilog_##sz
+#define ILOG(sz) ILOG_(BITS_##sz)
+#define ILOG_NZ_(sz) ilog_##sz##_nz
+#define ILOG_NZ(sz) ILOG_(BITS_##sz)
+
+#define ilog_u   ILOG(u)
+#define ilog_ul  ILOG(ul)
+#define ilog_ull ILOG(ull)
+#define ilog_zu  ILOG(zu)
+
+#define ilog_u_nz   ILOG_NZ(u)
+#define ilog_ul_nz  ILOG_NZ(ul)
+#define ilog_ull_nz ILOG_NZ(ull)
+#define ilog_zu_nz  ILOG_NZ(zu)
 
 /**
  * ilog32 - Integer binary logarithm of a 32-bit value.
@@ -29,7 +110,6 @@ u8_ret_t ilog8(uint16_t _v) CONST_FUNCTION;
  *		return 1U << ilog32(i-1);
  *	}
  */
-u8_ret_t ilog32(uint32_t _v) CONST_FUNCTION;
 
 /**
  * ilog32_nz - Integer binary logarithm of a non-zero 32-bit value.
@@ -48,7 +128,6 @@ u8_ret_t ilog32(uint32_t _v) CONST_FUNCTION;
  *		return ilog32_nz(i) - 1;
  *	}
  */
-u8_ret_t ilog32_nz(uint32_t _v) CONST_FUNCTION;
 
 /**
  * ilog64 - Integer binary logarithm of a 64-bit value.
@@ -60,7 +139,6 @@ u8_ret_t ilog32_nz(uint32_t _v) CONST_FUNCTION;
  * See Also:
  *	ilog64_nz(), ilog32()
  */
-u8_ret_t ilog64(uint64_t _v) CONST_FUNCTION;
 
 /**
  * ilog64_nz - Integer binary logarithm of a non-zero 64-bit value.
@@ -72,7 +150,6 @@ u8_ret_t ilog64(uint64_t _v) CONST_FUNCTION;
  * See Also:
  *	ilog64(), ilog32_nz()
  */
-u8_ret_t ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /**
  * STATIC_ILOG_32 - The integer logarithm of an (unsigned, 32-bit) constant.
@@ -107,6 +184,9 @@ u8_ret_t ilog64_nz(uint64_t _v) CONST_FUNCTION;
 #if HAVE_BUILTIN_CLZ
 
 # define __ILOG_B(v, type, type_suffix) \
+	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
+
+# define __ILOG_C(v, type, type_suffix) \
 	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
 
 # define builtin_ilog_u_nz(v)   __ILOG_B(v, unsigned, )
