@@ -330,7 +330,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 # define ilog_8_nz(_v)  builtin_ilog_8_nz(_v)
 #else
 # define ilog_8_nz(_v)	ilog_8(_v)
-# define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_8(_v) : ilog8(_v))
+# define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_8(_v) : ilog_8(_v))
 #endif
 
 #ifdef builtin_ilog_16_nz
