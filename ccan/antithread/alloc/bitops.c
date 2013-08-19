@@ -8,11 +8,7 @@
 
 unsigned int afls(unsigned long val)
 {
-	BUILD_ASSERT(sizeof(val) == sizeof(u32) || sizeof(val) == sizeof(u64));
-	if (sizeof(val) == sizeof(u32))
-		return ilog32(val);
-	else
-		return ilog64(val);
+	return ilog_ul(val);
 }
 
 /* FIXME: Move to bitops. */
