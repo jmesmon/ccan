@@ -150,7 +150,7 @@ u8_ret_t ilog_64(uint64_t _v){
 
 u8_ret_t ilog_64_nz(uint64_t _v)
 {
-  return ilog64(_v);
+  return ilog_64(_v);
 }
 
 /* from http://stackoverflow.com/questions/3272424/compute-fast-log-base-2-ceiling */
