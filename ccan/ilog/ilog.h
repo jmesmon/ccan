@@ -282,7 +282,12 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 # define builtin_ilog_u_nz(v)   __ILOG_B(v, unsigned, )
 # define builtin_ilog_ul_nz(v)  __ILOG_B(v, unsigned long, l)
 # define builtin_ilog_ull_nz(v) __ILOG_B(v, unsigned long long, ll)
-# define builtin_ilog__nz(t,v) CAT3(builtin_ilog_,EV(UINT_##t),_nz)(v)
+# define builtin_ilog__nz(t,v)  CAT3(builtin_ilog_,EV(UINT_##t),_nz)(v)
+
+# define builtin_ceil_ilog_u_nz(v)   __ILOG_C(v, unsigned, )
+# define builtin_ceil_ilog_ul_nz(v)  __ILOG_C(v, unsigned long, l)
+# define builtin_ceil_ilog_ull_nz(v) __ILOG_C(v, unsigned long long, ll)
+# define builtin_ceil_ilog__nz(t,v) CAT3(builtin_ceil_ilog_,EV(UINT_##t),_nz)(v)
 
 # define builtin_ilog_zu_nz(v) builtin_ilog__nz(zu,v)
 # define builtin_ilog_8_nz(v)  builtin_ilog__nz(8 ,v)
@@ -325,7 +330,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 # define ilog_8_nz(_v)  builtin_ilog_8_nz(_v)
 #else
 # define ilog_8_nz(_v)	ilog_8(_v)
-# define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog8(_v))
+# define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_8(_v) : ilog8(_v))
 #endif
 
 #ifdef builtin_ilog_16_nz
@@ -333,7 +338,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 # define ilog_16_nz(_v) builtin_ilog_16_nz(_v)
 #else
 # define ilog_16_nz(_v)	ilog_16(_v)
-# define ilog_16(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog_16(_v))
+# define ilog_16(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_16(_v) : ilog_16(_v))
 #endif
 
 #ifdef builtin_ilog_32_nz
