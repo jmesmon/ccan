@@ -46,7 +46,7 @@ static unsigned int level_of(const struct timers *timers, uint64_t time)
 
 	/* Level depends how far away it is. */
 	diff = time - timers->base;
-	return ilog64(diff / 2) / TIMER_LEVEL_BITS;
+	return ilog_64(diff / 2) / TIMER_LEVEL_BITS;
 }
 
 static void timer_add_raw(struct timers *timers, struct timer *t)
@@ -226,7 +226,7 @@ static void timer_fast_forward(struct timers *timers, uint64_t time)
 	if (time == timers->base)
 		return;
 
-	changed = ilog64_nz(time ^ timers->base);
+	changed = ilog_64_nz(time ^ timers->base);
 	level = (changed - 1) / TIMER_LEVEL_BITS;
 
 	/* Buckets always empty downwards, so we could cascade manually,
