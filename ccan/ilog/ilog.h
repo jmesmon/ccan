@@ -293,7 +293,7 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 # define ilog_ull_nz(_v)	ilog__nz(ull,_v)
 #endif
 
-#ifdef builtin_ilog8_nz
+#ifdef builtin_ilog_8_nz
 # define ilog_8(_v)    (builtin_ilog_8_nz(_v)&-!!(_v))
 # define ilog_8_nz(_v)  builtin_ilog_8_nz(_v)
 #else
@@ -301,7 +301,7 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 # define ilog_8(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog8(_v))
 #endif
 
-#ifdef builtin_ilog16_nz
+#ifdef builtin_ilog_16_nz
 # define ilog_16(_v)    (builtin_ilog_16_nz(_v)&-!!(_v))
 # define ilog_16_nz(_v) builtin_ilog_16_nz(_v)
 #else
@@ -309,7 +309,7 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 # define ilog_16(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog_16(_v))
 #endif
 
-#ifdef builtin_ilog32_nz
+#ifdef builtin_ilog_32_nz
 #define ilog_32(_v)	(builtin_ilog_32_nz(_v)&-!!(_v))
 #define ilog_32_nz(_v)	builtin_ilog_32_nz(_v)
 #else
@@ -317,12 +317,12 @@ u8_ret_t ilog_zu (size_t             _v) CONST_FUNCTION;
 #define ilog_32(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog_32(_v))
 #endif /* builtin_ilog32_nz */
 
-#ifdef builtin_ilog64_nz
+#ifdef builtin_ilog_64_nz
 #define ilog_64(_v)	(builtin_ilog_64_nz(_v)&-!!(_v))
 #define ilog_64_nz(_v)	builtin_ilog_64_nz(_v)
 #else
 #define ilog_64_nz(_v)	ilog_64(_v)
-#define ilog_64(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_64(_v) : ilog64(_v))
+#define ilog_64(_v)	(IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_64(_v) : ilog_64(_v))
 #endif /* builtin_ilog64_nz */
 
 /* Macros for evaluating compile-time constant ilog. */
