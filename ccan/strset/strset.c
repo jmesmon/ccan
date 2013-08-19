@@ -118,7 +118,7 @@ bool strset_add(struct strset *set, const char *member)
 	}
 
 	/* Find which bit differs (if we had ilog8, we'd use it) */
-	bit_num = ilog32_nz((u8)str[byte_num] ^ bytes[byte_num]) - 1;
+	bit_num = ilog_8_nz((u8)str[byte_num] ^ bytes[byte_num]) - 1;
 	assert(bit_num < CHAR_BIT);
 
 	/* Which direction do we go at this bit? */
