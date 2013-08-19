@@ -167,7 +167,7 @@ static float isaac64_float_bits(isaac64_ctx *_ctx,uint64_t _bits,int _base){
     _base-=64;
     _bits=isaac64_next_uint64(_ctx);
   }
-  nbits_needed=FLT_MANT_DIG-ilog64_nz(_bits);
+  nbits_needed=FLT_MANT_DIG-ilog_64_nz(_bits);
 #if FLT_MANT_DIG>64
   ret=ldexpf((float)_bits,_base);
 # if FLT_MANT_DIG>129
@@ -218,7 +218,7 @@ static double isaac64_double_bits(isaac64_ctx *_ctx,uint64_t _bits,int _base){
     _base-=64;
     _bits=isaac64_next_uint64(_ctx);
   }
-  nbits_needed=DBL_MANT_DIG-ilog64_nz(_bits);
+  nbits_needed=DBL_MANT_DIG-ilog_64_nz(_bits);
 #if DBL_MANT_DIG>64
   ret=ldexp((double)_bits,_base);
 # if DBL_MANT_DIG>129
