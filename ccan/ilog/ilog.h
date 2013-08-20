@@ -283,6 +283,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 # define ilog_from_ceil_ilog(x, ceil_log_of_x) /* TODO */((void)0)
 
 # define ceil_ilog_from_ilog(x, log_of_x) ((log_of_x) + !!((x) ^ (1 << (log_of_x))))
+# define ilog_from_ceil_ilog(x, ceil_log_of_x) /* TODO */((void)0)
 
 # define builtin_ilog_u_nz(v)   __ILOG_B(v, unsigned, )
 # define builtin_ilog_ul_nz(v)  __ILOG_B(v, unsigned long, l)
