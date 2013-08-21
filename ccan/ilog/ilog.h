@@ -277,7 +277,7 @@ static inline u8_ret_t ilog_zu_nz(size_t _v) {
 	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
 
 # define __ILOG_C(v, type, type_suffix) \
-	(((int)sizeof(type)*CHAR_BIT) - __builtin_clz##type_suffix(v))
+	ceil_ilog_from_ilog(v, builtin_ilog_##type_suffix##_nz(v))
 
 # define ceil_ilog_from_ilog(x, log_of_x) ((log_of_x) + !!((x) ^ (1 << (log_of_x))))
 # define ilog_from_ceil_ilog(x, ceil_log_of_x) /* TODO */((void)0)
