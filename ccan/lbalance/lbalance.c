@@ -19,7 +19,6 @@ struct stats {
 };
 
 struct lbalance {
-	struct tlist_lbalance_task tasks;
 	unsigned int num_tasks;
 
 	/* We figured out how many we want to run. */
@@ -40,6 +39,9 @@ struct lbalance {
 	/* Array of stats, indexed by number of tasks we were running. */
 	unsigned int max_stats;
 	struct stats *stats;
+
+	/* Placed at the end due to variable length. */
+	struct tlist_lbalance_task tasks;
 };
 
 struct lbalance_task {
