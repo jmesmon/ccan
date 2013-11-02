@@ -160,7 +160,7 @@ static struct tal_hdr *to_tal_hdr(const void *ctx)
 {
 	struct tal_hdr *t;
 
-	t = (struct tal_hdr *)((char *)ctx - sizeof(struct tal_hdr));
+	t = (struct tal_hdr *)(void *)((char *)ctx - sizeof(struct tal_hdr));
 	check_bounds(t);
 	check_bounds(ignore_destroying_bit(t->parent_child));
 	check_bounds(t->list.next);
@@ -450,7 +450,7 @@ void *tal_alloc_arr_(const tal_t *ctx, size_t size, size_t count, bool clear,
 
 	if (add_count) {
 		struct length *lprop;
-		lprop = (struct length *)((char *)ret + size) - 1;
+		lprop = (struct length *)(void *)((char *)ret + size) - 1;
 		init_property(&lprop->hdr, to_tal_hdr(ret), LENGTH);
 		lprop->count = count;
 	}
@@ -575,7 +575,7 @@ bool tal_set_name_(tal_t *ctx, const char *name, bool literal)
 
                 /* Append literal. */
                 for (p = &t->prop; *p && !is_literal(*p); p = &(*p)->next);
-                *p = (struct prop_hdr *)name;
+                *p = (struct prop_hdr *)(void *)name;
         } else if (!add_name_property(t, name))
 		return false;
 
