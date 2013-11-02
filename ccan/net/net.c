@@ -206,6 +206,14 @@ struct addrinfo *net_server_lookup(const char *service,
 				   int family,
 				   int socktype)
 {
+	return net_server_lookup_(NULL, service, family, socktype);
+}
+
+struct addrinfo *net_server_lookup_(const char *bind_addr,
+				    const char *service,
+				    int family,
+				    int socktype)
+{
 	struct addrinfo *res, hints;
 
 	memset(&hints, 0, sizeof(hints));
@@ -214,7 +222,7 @@ struct addrinfo *net_server_lookup(const char *service,
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_protocol = 0;
 
-	if (getaddrinfo(NULL, service, &hints, &res) != 0)
+	if (getaddrinfo(bind_addr, service, &hints, &res) != 0)
 		return NULL;
 
 	return res;

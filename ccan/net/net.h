@@ -141,6 +141,36 @@ struct addrinfo *net_server_lookup(const char *service,
 				   int family,
 				   int socktype);
 
+
+/**
+ * net_server_lookup - look up a service name to bind to.
+ * @bind_addr: an address to which we would like to bind.
+ * @service: the service to look up
+ * @family: Usually AF_UNSPEC, otherwise AF_INET or AF_INET6.
+ * @socktype: SOCK_DGRAM or SOCK_STREAM.
+ *
+ * This will do a synchronous lookup of a given name, returning a linked list
+ * of results, or NULL on error.  You should use freeaddrinfo() to free it.
+ *
+ * Example:
+ *	#include <sys/types.h>
+ *	#include <sys/socket.h>
+ *	#include <stdio.h>
+ *	#include <netdb.h>
+ *	#include <err.h>
+ *	...
+ *	struct addrinfo *addr;
+ *
+ *	// Get address(es) to bind for our service.
+ *	addr = net_server_lookup_("127.0.0.1", "8888", AF_UNSPEC, SOCK_STREAM);
+ *	if (!addr)
+ *		errx(1, "Failed to look up 8888 to bind to");
+ */
+struct addrinfo *net_server_lookup_(const char *bind_addr,
+				    const char *service,
+				    int family,
+				    int socktype);
+
 /**
  * net_bind - create listening socket(s)
  * @addrinfo: the address(es) to bind to.
