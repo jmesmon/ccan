@@ -626,7 +626,7 @@ static inline void *list_node_to_off_(struct list_node *node, size_t off)
 }
 static inline struct list_node *list_node_from_off_(void *ptr, size_t off)
 {
-	return (struct list_node *)((char *)ptr + off);
+	return (struct list_node *)(void *)((char *)ptr + off);
 }
 
 /* Get the offset of the member, but make sure it's a list_node. */
