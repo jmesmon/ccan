@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if !HAVE_CLOCK_GETTIME && !HAVE_CLOCK_GETTIME_IN_LIBRT
+#if !HAVE_CLOCK_GETTIME
 #include <sys/time.h>
 
 struct timespec time_now(void)

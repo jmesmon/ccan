@@ -129,7 +129,7 @@ static struct test tests[] = {
 	  "#include <byteswap.h>\n" },
 	{ "HAVE_C11_GENERIC", INSIDE_MAIN, NULL, NULL,
 	  "return _Generic(1, double: -1, default: 0);" },
-	{ "HAVE_CLOCK_GETTIME",
+	{ "HAVE_CLOCK_GETTIME_WITHOUT_LIBS",
 	  DEFINES_FUNC, "HAVE_STRUCT_TIMESPEC", NULL,
 	  "#include <time.h>\n"
 	  "static struct timespec func(void) {\n"
@@ -139,7 +139,7 @@ static struct test tests[] = {
 	  "}\n" },
 	{ "HAVE_CLOCK_GETTIME_IN_LIBRT",
 	  DEFINES_FUNC,
-	  "HAVE_STRUCT_TIMESPEC !HAVE_CLOCK_GETTIME",
+	  "HAVE_STRUCT_TIMESPEC !HAVE_CLOCK_GETTIME_WITHOUT_LIBS",
 	  "-lrt",
 	  "#include <time.h>\n"
 	  "static struct timespec func(void) {\n"
@@ -532,6 +532,11 @@ int main(int argc, const char *argv[])
 	printf("#define HAVE_CCAN 1\n");
 	for (i = 0; i < sizeof(tests)/sizeof(tests[0]); i++)
 		printf("#define %s %u\n", tests[i].name, tests[i].answer);
+	printf("#if defined(HAVE_CLOCK_GETTIME_IN_LIBRT) || defined(HAVE_CLOCK_GETTIME_WITHOUT_LIBS)\n");
+	printf("#define HAVE_CLOCK_GETTIME 1\n");
+	printf("#else\n");
+	printf("#define HAVE_CLOCK_GETTIME 0\n");
+	printf("#endif\n");
 	printf("#endif /* CCAN_CONFIG_H */\n");
 	return 0;
 }
