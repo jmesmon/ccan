@@ -227,5 +227,9 @@
 #else
 #define WARN_UNUSED_RESULT
 #endif
+
+/* TODO: support compilers without this */
+#define PACKED __attribute__((packed))
+
 #endif
 #endif /* CCAN_COMPILER_H */
