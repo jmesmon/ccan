@@ -1,0 +1,31 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * pr_debug - a simple "print only in debug mode" helper using env vars
+ *
+ * Example:
+ *	#include <ccan/pr_debug/pr_debug.h>
+ *
+ *	int main(int argc, char *argv[])
+ *	{
+ *		pr_debug(1, "It's working");
+ *		return 0;
+ *	}
+ *
+ * License: LGPL (v3 or any later version)
+ * Author: Cody P Schafer <devel@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		printf("ccan/compiler\n");
+		return 0;
+	}
+
+	return 1;
+}
