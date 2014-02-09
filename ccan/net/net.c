@@ -47,6 +47,19 @@ static bool set_nonblock(int fd, bool nonblock)
 	return (fcntl(fd, F_SETFL, flags) == 0);
 }
 
+static int set_df(int fd, bool df)
+{
+#if defined(IP_DONTFRAG)
+	int optval = 1;
+	return setsockopt(fd, IPPROTO_IP, IP_DONTFRAG,
+			(const void *) &optval, sizeof(optval));
+#elif defined(IP_MTU_DISCOVER)
+	int optval = IP_PMTUDISC_DO;
+	return setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER,
+			(const void *) &optval, sizeof(optval));
+#endif
+}
+
 static int start_connect(const struct addrinfo *addr, bool *immediate)
 {
 	int fd;
@@ -237,7 +250,7 @@ static bool should_listen(const struct addrinfo *addrinfo)
 	return (addrinfo->ai_socktype == SOCK_STREAM);
 }
 
-static int make_listen_fd(const struct addrinfo *addrinfo)
+static int make_listen_fd(const struct addrinfo *addrinfo, bool df)
 {
 	int saved_errno, fd, on = 1;
 
@@ -245,6 +258,9 @@ static int make_listen_fd(const struct addrinfo *addrinfo)
 		    addrinfo->ai_protocol);
 	if (fd < 0)
 		return -1;
+
+	if (set_df(fd, df))
+		goto fail;
 
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 	if (bind(fd, addrinfo->ai_addr, addrinfo->ai_addrlen) != 0)
@@ -261,7 +277,7 @@ fail:
 	return -1;
 }
 
-int net_bind(const struct addrinfo *addrinfo, int fds[2])
+int net_bind_(const struct addrinfo *addrinfo, int fds[2], bool df)
 {
 	const struct addrinfo *ipv6 = NULL;
 	const struct addrinfo *ipv4 = NULL;
@@ -282,13 +298,13 @@ int net_bind(const struct addrinfo *addrinfo, int fds[2])
 	num = 0;
 	/* Take IPv6 first, since it might bind to IPv4 port too. */
 	if (ipv6) {
-		if ((fds[num] = make_listen_fd(ipv6)) >= 0)
+		if ((fds[num] = make_listen_fd(ipv6, df)) >= 0)
 			num++;
 		else
 			ipv6 = NULL;
 	}
 	if (ipv4) {
-		if ((fds[num] = make_listen_fd(ipv4)) >= 0)
+		if ((fds[num] = make_listen_fd(ipv4, df)) >= 0)
 			num++;
 		else
 			ipv4 = NULL;
@@ -297,4 +313,9 @@ int net_bind(const struct addrinfo *addrinfo, int fds[2])
 		return -1;
 
 	return num;
+}
+
+int net_bind(const struct addrinfo *addrinfo, int fds[2])
+{
+	return net_bind_(addrinfo, fds, false);
 }
