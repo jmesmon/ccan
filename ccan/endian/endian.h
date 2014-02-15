@@ -218,7 +218,6 @@ typedef uint16_t ENDIAN_TYPE beint16_t;
 #define BE16_TO_CPU(le_val) BSWAP_16((ENDIAN_CAST uint16_t)le_val)
 #endif /* HAVE_LITTE_ENDIAN */
 
-
 /**
  * cpu_to_le64 - convert a uint64_t value to little-endian
  * @native: value to convert
@@ -327,6 +326,30 @@ static inline uint16_t be16_to_cpu(beint16_t be_val)
 {
 	return BE16_TO_CPU(be_val);
 }
+
+#define be_to_cpu(v) \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint16_t), be16_to_cpu(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint32_t), be32_to_cpu(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint64_t), be64_to_cpu(v), \
+		(void)0)))
+
+#define le_to_cpu(v) \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint16_t), le16_to_cpu(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint32_t), le32_to_cpu(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint64_t), le64_to_cpu(v), \
+		(void)0)))
+
+#define cpu_to_le(v) \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint16_t), cpu_to_le16(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint32_t), cpu_to_le32(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint64_t), cpu_to_le64(v), \
+		(void)0)))
+
+#define cpu_to_be(v) \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint16_t), cpu_to_be16(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint32_t), cpu_to_be32(v), \
+	__builtin_choose_expr(sizeof(v) == sizeof(uint64_t), cpu_to_be64(v), \
+		(void)0)))
 
 /* Whichever they include first, they get these definitions. */
 #ifdef CCAN_SHORT_TYPES_H
