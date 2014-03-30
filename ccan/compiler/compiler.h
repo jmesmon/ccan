@@ -229,7 +229,7 @@
 #endif
 
 /* TODO: support compilers without this */
-#define PACKED __attribute__((packed))
+#define PACKED __attribute__((__packed__))
 
 #endif
 #endif /* CCAN_COMPILER_H */
