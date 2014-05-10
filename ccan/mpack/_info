@@ -1,0 +1,45 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * mpack - a minimal (and incomplete) MessagePack encode/decode implimentation
+ *
+ * Allows streamed encoding and decoding of MessagePack data. Does
+ * not impliment all MessagePack token types.
+ *
+ * Example:
+ *	#include <stdio.h>
+ *
+ *      #include <ccan/mpack/mpack.h>
+ *
+ *	int main(void)
+ *	{
+ *		struct mpack_reader *r = mpack_reader_fd_create(STDIN_FILENO);
+ *		struct mpack_writer *w = mpack_writer_fd_create(STDOUT_FILENO);
+ *
+ *		mpack_pack_int(w, 1);
+ *
+ *		mpack_writer_fd_destroy(w);
+ *		mpack_reader_fd_destroy(r);
+ *		return 0;
+ *      }
+ *
+ * License: LGPL (v3 or any later version)
+ * Author: Cody P Schafer <devel@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+                return 0;
+        }
+
+	return 1;
+}
