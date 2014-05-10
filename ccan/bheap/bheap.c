@@ -219,8 +219,6 @@ static void bubble_up(bheap_ordering_fn ord, struct binary_heap_node *c,
 		if (ord(c, parent_stack[d]) >= 0)
 			break;
 		swap_node_up(c, parent_stack, d);
-		if (!d)
-			break; /* we just swapped the top node */
 	}
 }
 
