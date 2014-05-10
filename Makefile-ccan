@@ -80,6 +80,7 @@ MODS_WITH_SRC := aga \
 	lqueue \
 	lstack \
 	md4 \
+	mpack \
 	mem \
 	net \
 	nfs \
