@@ -1,3 +1,4 @@
+/* Licenced under LGPLv3+ - see LICENSE file for details */
 #ifndef CCAN_BHEAP_POISON_H_
 #define CCAN_BHEAP_POISON_H_
 
