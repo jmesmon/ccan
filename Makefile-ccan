@@ -71,6 +71,7 @@ MODS_WITH_SRC := antithread \
 	list \
 	md4 \
 	memmem \
+	mpack \
 	net \
 	nfs \
 	noerr \
