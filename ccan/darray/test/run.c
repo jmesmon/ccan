@@ -214,6 +214,7 @@ int main(void) {
 	}
 	reset(arr);
 	
+#if HAVE_STATEMENT_EXPR
 	testing(darray_make_room);
 	{
 		for (i=0; i < ARRAY_SIZE(lotsOfStrings); i++) {
@@ -233,6 +234,9 @@ int main(void) {
 		ok1(!strcmp(str.item, amalgams.stringsF));
 	}
 	reset(str);
+#else
+	skip(3, "Need HAVE_STATEMENT_EXPR to test darray_make_room");
+#endif
 	
 	testing(darray_appends, darray_prepends, darray_pop_check);
 	{
