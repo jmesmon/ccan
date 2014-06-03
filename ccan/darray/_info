@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ccan/darray/darray.h"
-
 /**
  * darray - Generic resizable arrays
  *
