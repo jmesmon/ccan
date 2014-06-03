@@ -1,0 +1,43 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * pp - very common preprocessor tools
+ *
+ * Some very common preprocessor macros for working with the preprocessor
+ * (token concatenation, stringification)
+ *
+ * Example:
+ *	#include <ccan/pp/pp.h>
+ *	static int do_ll(unsigned long long v)
+ *	{
+ *		return (int)v;
+ *	}
+ *	#define FOO(x) CAT2(do_,ll)(x)
+ *	#define BAR(x) CAT3(do_,x,EMPTY)
+ *
+ *	int main(void)
+ *	{
+ *		return FOO(3) + BAR(ll)(4);
+ *	}
+ *
+ * License: CC0 (Public Domain)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/str\n");
+                return 0;
+        }
+
+	return 1;
+}
