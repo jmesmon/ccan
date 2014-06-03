@@ -98,6 +98,28 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  */
 #define STATIC_ILOG_64(_v) (STATIC_ILOG6((uint64_t)(_v)))
 
+#if HAVE_BUILTIN_CHOOSE_EXPR
+/**
+ * ilog(v) - auto-select the appropriately sized ilog{32,64}() function
+ * See Also:
+ *	ilog64(), ilog32(), ilog_nz()
+ */
+#define ilog(_v) \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32(_v), \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64(_v), \
+	(void)0))
+
+/**
+ * ilog_nz(v) - auto-select the appropriately sized ilog{32,64}_nz() function
+ * See Also:
+ *	ilog64_nz(), ilog32_nz(), ilog()
+ */
+#define ilog_nz(_v) \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32_nz(_v), \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64_nz(_v), \
+	(void)0))
+#endif
+
 /* Private implementation details */
 
 /* CAT3 used to split up HAVE_BUILTIN_CLZ (which would otherwise expand */
