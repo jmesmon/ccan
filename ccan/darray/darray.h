@@ -117,7 +117,11 @@
 #define darray_new() {0,0,0}
 #define darray_init(arr) do {(arr).item=0; (arr).size=0; (arr).alloc=0;} while(0)
 #define darray_free(arr) do {free((arr).item);} while(0)
-
+#define darray_reset(arr) do { \
+	darray_free(arr); \
+	darray_init(arr); \
+} while (0)
+#define darray_clear(arr) do { (arr).size = 0; } while (0)
 
 /*
  * Typedefs for darrays of common types.  These are useful
@@ -216,6 +220,23 @@ typedef darray(unsigned long)  darray_ulong;
 	} while(0)
 
 
+/*** Insertion for darray_char ***/
+/* How does null termination work?
+ * - we always allocate space for the null terminator
+ * - sprintf will always write it out
+ * - we just don't count the space it takes (in arr.size) unless the user
+ *   requests it.
+ */
+#define darray_printf(arr, ...) do { \
+		darray_make_space(arr, snprintf(NULL, 0, __VA_ARGS__) + 1); \
+		(arr).size += sprintf(darray_space(arr), __VA_ARGS__); \
+	} while(0)
+
+#define darray_printf_nullterminate(arr, ...) do { \
+		darray_printf(arr, __VA_ARGS__); \
+		(arr).size += 1; \
+	} while(0)
+
 /*** Removal ***/
 
 /* Warning: Do not call darray_pop on an empty darray. */
@@ -266,8 +287,15 @@ typedef darray(unsigned long)  darray_ulong;
 			darray_realloc(arr, darray_next_alloc((arr).alloc, __need)); \
 	} while(0)
 
-#if HAVE_STATEMENT_EXPR==1
-#define darray_make_room(arr, room) ({size_t newAlloc = (arr).size+(room); if ((arr).alloc<newAlloc) darray_realloc(arr, newAlloc); (arr).item+(arr).size; })
+#define darray_make_space(arr, delta) darray_growalloc(arr, (delta) + (arr).size)
+#define darray_space_size(arr)  ((arr).alloc - (arr).size)
+#define darray_space(arr)       ((arr).item  + (arr).size)
+
+#if HAVE_STATEMENT_EXPR
+#define darray_make_room(arr, room) ({ \
+		darray_make_space(arr, room); \
+		darray_space(arr); \
+	})
 #endif
 
 static inline size_t darray_next_alloc(size_t alloc, size_t need)
