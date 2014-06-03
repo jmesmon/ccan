@@ -5,6 +5,8 @@
 # include <stdint.h>
 # include <limits.h>
 # include <ccan/compiler/compiler.h>
+# include <ccan/pp/pp.h>
+# include <ccan/pp_ti/pp_ti.h>
 
 /**
  * ilog32 - Integer binary logarithm of a 32-bit value.
@@ -98,42 +100,32 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /* Private implementation details */
 
+/* CAT3 used to split up HAVE_BUILTIN_CLZ (which would otherwise expand */
+#define HAVE_CLZ(bits) CAT3(HAVE_BUILTI,N_CLZ,BITS_TO_INT_C(bits))
+
 /*Note the casts to (int) below: this prevents "upgrading"
    the type of an entire expression to an (unsigned) size_t.*/
-#if INT_MAX>=2147483647 && HAVE_BUILTIN_CLZ
-#define builtin_ilog32_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clz(v))
-#elif LONG_MAX>=2147483647L && HAVE_BUILTIN_CLZL
-#define builtin_ilog32_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clzl(v))
+#if HAVE_CLZ(32)
+# define builtin_clz_32(v) CAT2(__builtin_clz,BITS_TO_INT(32))(v)
+# define builtin_ilog32_nz(v) \
+	(((int)sizeof(unsigned)*CHAR_BIT) - builtin_clz_32(v))
+# define ilog32(_v) (builtin_ilog32_nz(_v)&-!!(_v))
+# define ilog32_nz(_v) builtin_ilog32_nz(_v)
+#else /* !HAVE_CLZ(32) */
+# define ilog32_nz(_v) ilog32(_v)
+# define ilog32(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
 #endif
 
-#if INT_MAX>=9223372036854775807LL && HAVE_BUILTIN_CLZ
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned)*CHAR_BIT) - __builtin_clz(v))
-#elif LONG_MAX>=9223372036854775807LL && HAVE_BUILTIN_CLZL
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned long)*CHAR_BIT) - __builtin_clzl(v))
-#elif HAVE_BUILTIN_CLZLL
-#define builtin_ilog64_nz(v) \
-	(((int)sizeof(unsigned long long)*CHAR_BIT) - __builtin_clzll(v))
-#endif
-
-#ifdef builtin_ilog32_nz
-#define ilog32(_v) (builtin_ilog32_nz(_v)&-!!(_v))
-#define ilog32_nz(_v) builtin_ilog32_nz(_v)
-#else
-#define ilog32_nz(_v) ilog32(_v)
-#define ilog32(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_32(_v) : ilog32(_v))
-#endif /* builtin_ilog32_nz */
-
-#ifdef builtin_ilog64_nz
+#if HAVE_CLZ(64)
+# define builtin_clz_64(v) CAT2(__builtin_clz,BITS_TO_INT(64))(v)
+# define builtin_ilog64_nz(v) \
+	(((int)sizeof(unsigned)*CHAR_BIT) - builtin_clz_64(v))
 #define ilog64(_v) (builtin_ilog64_nz(_v)&-!!(_v))
 #define ilog64_nz(_v) builtin_ilog64_nz(_v)
-#else
+#else /* !HAVE_CLZ(64) */
 #define ilog64_nz(_v) ilog64(_v)
 #define ilog64(_v) (IS_COMPILE_CONSTANT(_v) ? STATIC_ILOG_64(_v) : ilog64(_v))
-#endif /* builtin_ilog64_nz */
+#endif
 
 /* Macros for evaluating compile-time constant ilog. */
 # define STATIC_ILOG0(_v) (!!(_v))

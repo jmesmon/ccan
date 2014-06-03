@@ -44,6 +44,8 @@ int main(int _argc,const char *_argv[]){
   if(_argc!=2)return 1;
   if(strcmp(_argv[1],"depends")==0){
     printf("ccan/compiler\n");
+    printf("ccan/pp\n");
+    printf("ccan/pp_ti\n");
     return 0;
   }
   return 1;
