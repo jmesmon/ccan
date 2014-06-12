@@ -16,6 +16,7 @@ MODS_NO_SRC := alignof \
 	bytestring \
 	cast \
 	check_type \
+	ct \
 	compiler \
 	container_of \
 	darray \

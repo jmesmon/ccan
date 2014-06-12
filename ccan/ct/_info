@@ -1,0 +1,47 @@
+#include <string.h>
+#include "config.h"
+
+/**
+ * ct - "compile time" or "choose type" - tools for building generic macros generically
+ *
+ * Provide wrappers around compiler builtins (if avaliable) or less worthy fallbacks.
+ *
+ * WARNING: mixing return types will be problematic without compiler support for
+ * __builtin_choose_expr(). Generally, only the use of convertable types as
+ * returns (typically, integer types) is safe/sane when the compiler does not
+ * support __builtin_choose_expr().
+ *
+ * Example:
+ *	#include <ccan/ct/ct.h>
+ *      #define foo(x) C_CHOOSE(VAR_COMPAT_TYPE(x, double), foo_double(x), \
+ *			C_CHOOSE(VAR_COMPAT_TYPE(x, int), foo_int(x), \
+ *			C_CHOOSE_END))
+ *	static int foo_double(double x) {
+ *		return x / 3;
+ *	}
+ *	static int foo_int(int x) {
+ *		return x * 3;
+ *      }
+ *      int main(void) {
+ *		return foo(3.) * foo(1);
+ *      }
+ *
+ * License: CC0 (Public Domain)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+                return 0;
+        }
+
+	return 1;
+}
