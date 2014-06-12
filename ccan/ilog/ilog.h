@@ -4,6 +4,7 @@
 # include "config.h"
 # include <stdint.h>
 # include <limits.h>
+# include <ccan/ct/ct.h>
 # include <ccan/compiler/compiler.h>
 # include <ccan/pp/pp.h>
 # include <ccan/pp_ti/pp_ti.h>
@@ -156,20 +157,6 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  */
 #define ilog8	ilog16
 #define ilog8_nz  ilog16_nz
-
-#if HAVE_TYPEOF && HAVE_BUILTIN_TYPES_COMPATIBLE_P
-# define VAR_COMPAT_TYPE(_v, _t) __builtin_types_compatible_p(typeof(_v), _t)
-#else
-# define VAR_COMPAT_TYPE(_v, _t) (sizeof(_v) == sizeof(_t))
-#endif
-
-#if HAVE_BUILTIN_CHOOSE_EXPR
-# define C_CHOOSE(q, a, b) __builtin_choose_expr(q, a, b)
-# define C_CHOOSE_END (void)0
-#else
-# define C_CHOOSE(q, a, b) ((q) ? (a) : (b))
-# define C_CHOOSE_END C_CHOOSE_FAILED_TO_RESOLVE_AT_COMPILE_TIME
-#endif
 
 #define ILOG_(_v, _nz) \
 	C_CHOOSE(VAR_COMPAT_TYPE(_v, uint8_t),  ilog8##_nz(_v), \
