@@ -9,6 +9,46 @@
 # include <ccan/pp_ti/pp_ti.h>
 
 /**
+ * ilog16 - Integer binary logarithm of a 16-bit value.
+ * @_v: A 16-bit value.
+ * Returns floor(log2(_v))+1, or 0 if _v==0.
+ * This is the number of bits that would be required to represent _v in two's
+ *  complement notation with all of the leading zeros stripped.
+ * Note that many uses will resolve to the fast macro version instead.
+ *
+ * See Also:
+ *	ilog16_nz(), ilog64()
+ *
+ * Example:
+ *	// Rounds up to next power of 2 (if not a power of 2).
+ *	static uint16_t round_up16(uint16_t i)
+ *	{
+ *		assert(i != 0);
+ *		return 1U << ilog16(i-1);
+ *	}
+ */
+int ilog16(uint16_t _v) CONST_FUNCTION;
+
+/**
+ * ilog16_nz - Integer binary logarithm of a non-zero 16-bit value.
+ * @_v: A 16-bit value.
+ * Returns floor(log2(_v))+1, or undefined if _v==0.
+ * This is the number of bits that would be required to represent _v in two's
+ *  complement notation with all of the leading zeros stripped.
+ * Note that many uses will resolve to the fast macro version instead.
+ * See Also:
+ *	ilog16(), ilog64_nz()
+ * Example:
+ *	// Find Last Set (ie. highest bit set, 0 to 31).
+ *	static uint16_t fls16(uint16_t i)
+ *	{
+ *		assert(i != 0);
+ *		return ilog16_nz(i) - 1;
+ *	}
+ */
+int ilog16_nz(uint16_t _v) CONST_FUNCTION;
+
+/**
  * ilog32 - Integer binary logarithm of a 32-bit value.
  * @_v: A 32-bit value.
  * Returns floor(log2(_v))+1, or 0 if _v==0.
@@ -73,6 +113,17 @@ int ilog64(uint64_t _v) CONST_FUNCTION;
 int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /**
+ * STATIC_ILOG_16 - The integer logarithm of an (unsigned, 16-bit) constant.
+ * @_v: A non-negative 16-bit constant.
+ * Returns floor(log2(_v))+1, or 0 if _v==0.
+ * This is the number of bits that would be required to represent _v in two's
+ *  complement notation with all of the leading zeros stripped.
+ * This macro should only be used when you need a compile-time constant,
+ * otherwise ilog16 or ilog16_nz are just as fast and more flexible.
+ */
+#define STATIC_ILOG_16(_v) (STATIC_ILOG4((uint16_t)(_v)))
+
+/**
  * STATIC_ILOG_32 - The integer logarithm of an (unsigned, 32-bit) constant.
  * @_v: A non-negative 32-bit constant.
  * Returns floor(log2(_v))+1, or 0 if _v==0.
@@ -99,14 +150,12 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 #define STATIC_ILOG_64(_v) (STATIC_ILOG6((uint64_t)(_v)))
 
 /**
- * ilog8, ilog16 - alias smaller sized ilogs for convienience
+ * ilog8 - alias smaller sized ilog for convienience
  *
  * See ilog32(), ilog64() for usage.
  */
-#define ilog8  ilog32
-#define ilog16 ilog32
-#define ilog8_nz  ilog32_nz
-#define ilog16_nz ilog32_nz
+#define ilog8	ilog16
+#define ilog8_nz  ilog16_nz
 
 #if HAVE_BUILTIN_CHOOSE_EXPR
 /**
@@ -115,6 +164,7 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  *	ilog64(), ilog32(), ilog_nz()
  */
 #define ilog(_v) \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint16_t), ilog16(_v), \
 	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32(_v), \
 	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64(_v), \
 	(void)0))
@@ -125,6 +175,7 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  *	ilog64_nz(), ilog32_nz(), ilog()
  */
 #define ilog_nz(_v) \
+	__builtin_choose_expr(sizeof(_v) <= sizeof(uint16_t), ilog16_nz(_v), \
 	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32_nz(_v), \
 	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64_nz(_v), \
 	(void)0))
@@ -161,6 +212,18 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 /*Note the casts to (int) below: this prevents "upgrading"
    the type of an entire expression to an (unsigned) size_t.*/
+#if HAVE_CLZ(16)
+# define builtin_clz_16(v) CAT2(__builtin_clz,BITS_TO_INT(16))(v)
+# define builtin_ilog16_nz(v) \
+	(((int)sizeof(unsigned)*CHAR_BIT) - builtin_clz_16(v))
+# define builtin_ilog16(_v) (builtin_ilog16_nz(_v)&-!!(_v))
+# define ilog16_nz(_v) builtin_ilog16_nz(_v)
+# define ilog16(_v)    builtin_ilog16(_v)
+#else /* !HAVE_CLZ(16) */
+# define ilog16_nz(_v) ilog16(_v)
+# define ilog16(_v)    ILOG_MS(16, _v)
+#endif
+
 #if HAVE_CLZ(32)
 # define builtin_clz_32(v) CAT2(__builtin_clz,BITS_TO_INT(32))(v)
 # define builtin_ilog32_nz(v) \

@@ -4,10 +4,30 @@
 #include <limits.h>
 
 /* avoid expanding these macros */
+#undef ilog16_nz
+#undef ilog16
 #undef ilog32_nz
 #undef ilog32
 #undef ilog64_nz
 #undef ilog64
+
+int ilog16(uint16_t _v)
+{
+# if HAVE_CLZ(16)
+  return builtin_ilog16(_v);
+# else
+  return ilog32(_v);
+# endif
+}
+
+int ilog16_nz(uint16_t _v)
+{
+# if HAVE_CLZ(16)
+  return builtin_ilog16_nz(_v);
+# else
+  return ilog32(_v);
+# endif
+}
 
 /*The fastest fallback strategy for platforms with fast multiplication appears
    to be based on de Bruijn sequences~\cite{LP98}.
