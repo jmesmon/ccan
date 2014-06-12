@@ -157,29 +157,40 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 #define ilog8	ilog16
 #define ilog8_nz  ilog16_nz
 
+#if HAVE_TYPEOF && HAVE_BUILTIN_TYPES_COMPATIBLE_P
+# define VAR_COMPAT_TYPE(_v, _t) __builtin_types_compatible_p(typeof(_v), _t)
+#else
+# define VAR_COMPAT_TYPE(_v, _t) (sizeof(_v) == sizeof(_t))
+#endif
+
 #if HAVE_BUILTIN_CHOOSE_EXPR
+# define C_CHOOSE(q, a, b) __builtin_choose_expr(q, a, b)
+# define C_CHOOSE_END (void)0
+#else
+# define C_CHOOSE(q, a, b) ((q) ? (a) : (b))
+# define C_CHOOSE_END C_CHOOSE_FAILED_TO_RESOLVE_AT_COMPILE_TIME
+#endif
+
+#define ILOG_(_v, _nz) \
+	C_CHOOSE(VAR_COMPAT_TYPE(_v, uint8_t),  ilog8##_nz(_v), \
+	C_CHOOSE(VAR_COMPAT_TYPE(_v, uint16_t), ilog16##_nz(_v), \
+	C_CHOOSE(VAR_COMPAT_TYPE(_v, uint32_t), ilog32##_nz(_v), \
+	C_CHOOSE(VAR_COMPAT_TYPE(_v, uint64_t), ilog64##_nz(_v), \
+	C_CHOOSE_END)))
+
 /**
  * ilog(v) - auto-select the appropriately sized ilog{32,64}() function
  * See Also:
  *	ilog64(), ilog32(), ilog_nz()
  */
-#define ilog(_v) \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint16_t), ilog16(_v), \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32(_v), \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64(_v), \
-	(void)0))
+#define ilog(_v) ILOG_(_v, EMPTY)
 
 /**
  * ilog_nz(v) - auto-select the appropriately sized ilog{32,64}_nz() function
  * See Also:
  *	ilog64_nz(), ilog32_nz(), ilog()
  */
-#define ilog_nz(_v) \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint16_t), ilog16_nz(_v), \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint32_t), ilog32_nz(_v), \
-	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64_nz(_v), \
-	(void)0))
-#endif
+#define ilog_nz(_v) ILOG_(_v, _nz)
 
 #define ILOG_SZ_(_sz) ilog##_sz
 #define ILOG_SZ(_sz) ILOG_SZ(_sz)
