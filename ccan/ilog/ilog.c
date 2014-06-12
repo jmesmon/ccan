@@ -3,6 +3,12 @@
 #include "ilog.h"
 #include <limits.h>
 
+/* avoid expanding these macros */
+#undef ilog32_nz
+#undef ilog32
+#undef ilog64_nz
+#undef ilog64
+
 /*The fastest fallback strategy for platforms with fast multiplication appears
    to be based on de Bruijn sequences~\cite{LP98}.
   Tests confirmed this to be true even on an ARM11, where it is actually faster
@@ -22,17 +28,13 @@ static UNNEEDED const unsigned char DEBRUIJN_IDX32[32]={
   31,27,13,23,21,19,16, 7,26,12,18, 6,11, 5,10, 9
 };
 
-/* We always compile these in, in case someone takes address of function. */
-#undef ilog32_nz
-#undef ilog32
-#undef ilog64_nz
-#undef ilog64
-
 int ilog32(uint32_t _v){
+# if HAVE_CLZ(32)
+  return builtin_ilog32(_v);
+# elif defined(ILOG_NODEBRUIJN)
 /*On a Pentium M, this branchless version tested as the fastest version without
    multiplications on 1,000,000,000 random 32-bit integers, edging out a
    similar version with branches, and a 256-entry LUT version.*/
-# if defined(ILOG_NODEBRUIJN)
   int ret;
   int m;
   ret=_v>0;
@@ -50,8 +52,8 @@ int ilog32(uint32_t _v){
   ret|=m;
   ret+=_v>1;
   return ret;
-/*This de Bruijn sequence version is faster if you have a fast multiplier.*/
 # else
+/*This de Bruijn sequence version is faster if you have a fast multiplier.*/
   int ret;
   ret=_v>0;
   _v|=_v>>1;
@@ -67,11 +69,17 @@ int ilog32(uint32_t _v){
 
 int ilog32_nz(uint32_t _v)
 {
+# if HAVE_CLZ(32)
+  return builtin_ilog32_nz(_v);
+# else
   return ilog32(_v);
+# endif
 }
 
 int ilog64(uint64_t _v){
-# if defined(ILOG_NODEBRUIJN)
+# if HAVE_CLZ(64)
+  return builtin_clz_64(_v);
+# elif defined(ILOG_NODEBRUIJN)
   uint32_t v;
   int      ret;
   int      m;
@@ -94,8 +102,8 @@ int ilog64(uint64_t _v){
   ret+=v>1;
   return ret;
 # else
-/*If we don't have a 64-bit word, split it into two 32-bit halves.*/
 #  if LONG_MAX<9223372036854775807LL
+/*If we don't have a 64-bit word, split it into two 32-bit halves.*/
   uint32_t v;
   int      ret;
   int      m;
@@ -111,8 +119,8 @@ int ilog64(uint64_t _v){
   v=(v>>1)+1;
   ret+=DEBRUIJN_IDX32[v*0x77CB531U>>27&0x1F];
   return ret;
-/*Otherwise do it in one 64-bit operation.*/
 #  else
+/*Otherwise do it in one 64-bit operation.*/
   static const unsigned char DEBRUIJN_IDX64[64]={
      0, 1, 2, 7, 3,13, 8,19, 4,25,14,28, 9,34,20,40,
      5,17,26,38,15,46,29,48,10,31,35,54,21,50,41,57,
@@ -136,6 +144,10 @@ int ilog64(uint64_t _v){
 
 int ilog64_nz(uint64_t _v)
 {
+# if HAVE_CLZ(64)
+  return builtin_ilog64_nz(_v);
+# else
   return ilog64(_v);
+# endif
 }
 
