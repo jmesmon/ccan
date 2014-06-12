@@ -105,6 +105,8 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  */
 #define ilog8  ilog32
 #define ilog16 ilog32
+#define ilog8_nz  ilog32_nz
+#define ilog16_nz ilog32_nz
 
 #if HAVE_BUILTIN_CHOOSE_EXPR
 /**
@@ -130,16 +132,22 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 
 #define ILOG_SZ_(_sz) ilog##_sz
 #define ILOG_SZ(_sz) ILOG_SZ(_sz)
+#define ILOG_SZ_NZ_(_sz) ilog##_sz##_nz
+#define ILOG_SZ_NZ(_sz) ILOG_SZ(_sz)
 
 /**
- * ilog_u, ilog_lu, ilog_llu, ilog_zu - ilogs for non-bitsized types
+ * ilog_u, ilog_lu, ilog_llu, ilog_zu (and _nz variants) - ilogs for non-bitsized types
  *
  * See ilog32(), ilog64() for usage.
  */
-#define ilog_u   ILOG_SZ(INT_TO_BITS(EMPTY))
-#define ilog_lu  ILOG_SZ(INT_TO_BITS(l))
-#define ilog_llu ILOG_SZ(INT_TO_BITS(ll))
-#define ilog_zu	 ILOG_SZ(INT_TO_BITS(z))
+#define ilog_u		ILOG_SZ(INT_TO_BITS(EMPTY))
+#define ilog_lu		ILOG_SZ(INT_TO_BITS(l))
+#define ilog_llu	ILOG_SZ(INT_TO_BITS(ll))
+#define ilog_zu		ILOG_SZ(INT_TO_BITS(z))
+#define ilog_u_nz	ILOG_NZ_SZ(INT_TO_BITS(EMPTY))
+#define ilog_lu_nz	ILOG_NZ_SZ(INT_TO_BITS(l))
+#define ilog_llu_nz	ILOG_NZ_SZ(INT_TO_BITS(ll))
+#define ilog_zu_nz	ILOG_NZ_SZ(INT_TO_BITS(z))
 
 /* Private implementation details */
 
