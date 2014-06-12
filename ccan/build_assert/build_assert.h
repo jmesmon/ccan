@@ -3,6 +3,22 @@
 #define CCAN_BUILD_ASSERT_H
 
 /**
+ * BUILD_ASSERT_MSG(cond, msg) - build time assert with message
+ * @cond: compile-time condition which must be true
+ * @msg: message we will attempt to print
+ *
+ * Your compile will fail if the condition isn't true, or can't be evaluated
+ * by the compiler.  This can only be used within a function.
+ *
+ * XXX: also support when __attribute__((error(msg))) is avaliable.
+ */
+#if HAVE_STATIC_ASSERT
+#define BUILD_ASSERT_MSG(cond, msg) _Static_assert(cond, msg)
+#else
+#define BUILD_ASSERT_MSG(cond, msg) BUILD_ASSERT(cond)
+#endif
+
+/**
  * BUILD_ASSERT - assert a build-time dependency.
  * @cond: the compile-time condition which must be true.
  *
