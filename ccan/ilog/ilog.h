@@ -98,6 +98,14 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
  */
 #define STATIC_ILOG_64(_v) (STATIC_ILOG6((uint64_t)(_v)))
 
+/**
+ * ilog8, ilog16 - alias smaller sized ilogs for convienience
+ *
+ * See ilog32(), ilog64() for usage.
+ */
+#define ilog8  ilog32
+#define ilog16 ilog32
+
 #if HAVE_BUILTIN_CHOOSE_EXPR
 /**
  * ilog(v) - auto-select the appropriately sized ilog{32,64}() function
@@ -119,6 +127,19 @@ int ilog64_nz(uint64_t _v) CONST_FUNCTION;
 	__builtin_choose_expr(sizeof(_v) <= sizeof(uint64_t), ilog64_nz(_v), \
 	(void)0))
 #endif
+
+#define ILOG_SZ_(_sz) ilog##_sz
+#define ILOG_SZ(_sz) ILOG_SZ(_sz)
+
+/**
+ * ilog_u, ilog_lu, ilog_llu, ilog_zu - ilogs for non-bitsized types
+ *
+ * See ilog32(), ilog64() for usage.
+ */
+#define ilog_u   ILOG_SZ(INT_TO_BITS(EMPTY))
+#define ilog_lu  ILOG_SZ(INT_TO_BITS(l))
+#define ilog_llu ILOG_SZ(INT_TO_BITS(ll))
+#define ilog_zu	 ILOG_SZ(INT_TO_BITS(z))
 
 /* Private implementation details */
 
