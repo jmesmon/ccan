@@ -23,9 +23,9 @@
 #ifndef CCAN_DARRAY_H
 #define CCAN_DARRAY_H
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
-#include "config.h"
 
 /*
  * SYNOPSIS
