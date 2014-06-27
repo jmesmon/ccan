@@ -26,7 +26,7 @@ void *memmem(const void *haystack, size_t haystacklen,
 }
 #endif
 
-void *mempbrkm(const char *data, size_t len, const char *accept, size_t accept_len)
+char *mempbrkm(const char *data, size_t len, const char *accept, size_t accept_len)
 {
 	size_t i, j;
 	for (i = 0; i < len; i++)
