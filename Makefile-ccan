@@ -69,7 +69,7 @@ MODS_WITH_SRC := antithread \
 	likely \
 	list \
 	md4 \
-	memmem \
+	mem \
 	net \
 	nfs \
 	noerr \
