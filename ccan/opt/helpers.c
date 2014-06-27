@@ -165,6 +165,12 @@ char *opt_inc_intval(int *i)
 	return NULL;
 }
 
+char *opt_dec_intval(int *i)
+{
+	(*i)--;
+	return NULL;
+}
+
 /* Display version string. */
 char *opt_version_and_exit(const char *version)
 {
@@ -196,14 +202,19 @@ void opt_show_invbool(char buf[OPT_SHOW_LEN], const bool *b)
 
 void opt_show_charp(char buf[OPT_SHOW_LEN], char *const *p)
 {
-	size_t len = strlen(*p);
-	buf[0] = '"';
-	if (len > OPT_SHOW_LEN - 2)
-		len = OPT_SHOW_LEN - 2;
-	strncpy(buf+1, *p, len);
-	buf[1+len] = '"';
-	if (len < OPT_SHOW_LEN - 2)
-		buf[2+len] = '\0';
+	if (*p){
+		size_t len = strlen(*p);
+		buf[0] = '"';
+		if (len > OPT_SHOW_LEN - 2)
+			len = OPT_SHOW_LEN - 2;
+		strncpy(buf+1, *p, len);
+		buf[1+len] = '"';
+		if (len < OPT_SHOW_LEN - 2)
+			buf[2+len] = '\0';
+	}
+	else {
+		strncpy(buf, "(nil)", OPT_SHOW_LEN);
+	}
 }
 
 /* Show an integer value, various forms. */
@@ -238,9 +249,10 @@ static char *set_llong_with_suffix(const char *arg, long long *ll,
 				   const long long base)
 {
 	char *endp;
-	if (!arg[0])
+	if (!arg[0]){
+		*ll = 0;
 		return arg_bad("'%s' (an empty string) is not a number", arg);
-
+	}
 	errno = 0;
 	*ll = strtoll(arg, &endp, 0);
 	if (errno)

@@ -23,10 +23,10 @@
 #ifndef CCAN_DARRAY_H
 #define CCAN_DARRAY_H
 
+#include "config.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "config.h"
 
 /*
  * SYNOPSIS
@@ -118,7 +118,11 @@
 #define darray_new() {0,0,0}
 #define darray_init(arr) do {(arr).item=0; (arr).size=0; (arr).alloc=0;} while(0)
 #define darray_free(arr) do {free((arr).item);} while(0)
-#define darray_reset(arr) do { (arr).size = 0; } while (0)
+#define darray_reset(arr) do { \
+	darray_free(arr); \
+	darray_init(arr); \
+} while (0)
+#define darray_clear(arr) do { (arr).size = 0; } while (0)
 
 /*
  * Typedefs for darrays of common types.  These are useful
@@ -218,25 +222,21 @@ typedef darray(unsigned long)  darray_ulong;
 
 
 /*** Insertion for darray_char ***/
-
-#if 0
-static inline void PRINTF(1, 2) darray_printf(darray_char *d, char *fmt, ...)
-{
-
-}
-#endif
-
-#define darray_printf_nullterminate(arr, ...) do { \
-		darray_make_space(arr, snprintf(NULL, 0, __VA_ARGS__) + 1); \
-		(arr).size += sprintf(darray_space(arr), __VA_ARGS__) + 1; \
-	} while(0)
-
+/* How does null termination work?
+ * - we always allocate space for the null terminator
+ * - sprintf will always write it out
+ * - we just don't count the space it takes (in arr.size) unless the user
+ *   requests it.
+ */
 #define darray_printf(arr, ...) do { \
 		darray_make_space(arr, snprintf(NULL, 0, __VA_ARGS__) + 1); \
 		(arr).size += sprintf(darray_space(arr), __VA_ARGS__); \
 	} while(0)
 
-
+#define darray_printf_nullterminate(arr, ...) do { \
+		darray_printf(arr, __VA_ARGS__); \
+		(arr).size += 1; \
+	} while(0)
 
 /*** Removal ***/
 
@@ -292,7 +292,7 @@ static inline void PRINTF(1, 2) darray_printf(darray_char *d, char *fmt, ...)
 #define darray_space_size(arr)  ((arr).alloc - (arr).size)
 #define darray_space(arr)       ((arr).item  + (arr).size)
 
-#if HAVE_STATEMENT_EXPR==1
+#if HAVE_STATEMENT_EXPR
 #define darray_make_room(arr, room) ({ \
 		darray_make_space(arr, room); \
 		darray_space(arr); \

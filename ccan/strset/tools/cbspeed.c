@@ -19,9 +19,9 @@
  #15: Post-Churn lookup (miss):   189-197(191)
  #16: Post-Churn lookup (random):   500-531(506)
  */
-#include <ccan/str_talloc/str_talloc.h>
-#include <ccan/grab_file/grab_file.h>
-#include <ccan/talloc/talloc.h>
+#include <ccan/tal/str/str.h>
+#include <ccan/tal/grab_file/grab_file.h>
+#include <ccan/tal/tal.h>
 #include <ccan/time/time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -381,43 +381,36 @@ return allprefixed_traverse(top,handle,arg);
 /* end critbit */
 
 /* Nanoseconds per operation */
-static size_t normalize(const struct timeval *start,
-			const struct timeval *stop,
+static size_t normalize(const struct timeabs *start,
+			const struct timeabs *stop,
 			unsigned int num)
 {
-	struct timeval diff;
-
-	timersub(stop, start, &diff);
-
-	/* Floating point is more accurate here. */
-	return (double)(diff.tv_sec * 1000000 + diff.tv_usec)
-		/ num * 1000;
+	return time_to_nsec(time_divide(time_between(*stop, *start), num));
 }
 
 int main(int argc, char *argv[])
 {
 	size_t i, j, num;
-	struct timeval start, stop;
+	struct timeabs start, stop;
 	critbit0_tree ct;
 	char **words, **misswords;
 
-	words = strsplit(NULL, grab_file(NULL,
-					 argv[1] ? argv[1] : "/usr/share/dict/words",
-					 NULL), "\n");
+	words = tal_strsplit(NULL, grab_file(NULL,
+					 argv[1] ? argv[1] : "/usr/share/dict/words"), "\n", STR_NO_EMPTY);
 	ct.root = NULL;
-	num = talloc_array_length(words) - 1;
+	num = tal_count(words) - 1;
 	printf("%zu words\n", num);
 
 	/* Append and prepend last char for miss testing. */
-	misswords = talloc_array(words, char *, num);
+	misswords = tal_arr(words, char *, num);
 	for (i = 0; i < num; i++) {
 		char lastc;
 		if (strlen(words[i]))
 			lastc = words[i][strlen(words[i])-1];
 		else
 			lastc = 'z';
-		misswords[i] = talloc_asprintf(misswords, "%c%s%c%c",
-					       lastc, words[i], lastc, lastc);
+		misswords[i] = tal_fmt(misswords, "%c%s%c%c",
+				       lastc, words[i], lastc, lastc);
 	}
 
 	printf("#01: Initial insert: ");

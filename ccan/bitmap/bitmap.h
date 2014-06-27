@@ -75,7 +75,7 @@ static inline void bitmap_change_bit(bitmap *bitmap, int n)
 	BITMAP_WORD(bitmap, n) ^= BITMAP_WORDBIT(n);
 }
 
-static inline bool bitmap_test_bit(bitmap *bitmap, int n)
+static inline bool bitmap_test_bit(const bitmap *bitmap, int n)
 {
 	return !!(BITMAP_WORD(bitmap, n) & BITMAP_WORDBIT(n));
 }
@@ -91,7 +91,7 @@ static inline void bitmap_fill(bitmap *bitmap, int nbits)
 	memset(bitmap, 0xff, bitmap_sizeof(nbits));
 }
 
-static inline void bitmap_copy(bitmap *dst, bitmap *src, int nbits)
+static inline void bitmap_copy(bitmap *dst, const bitmap *src, int nbits)
 {
 	memcpy(dst, src, bitmap_sizeof(nbits));
 }
@@ -100,7 +100,7 @@ static inline void bitmap_copy(bitmap *dst, bitmap *src, int nbits)
 	static inline void bitmap_##_name(bitmap *dst, bitmap *src1, bitmap *src2, \
 					 int nbits) \
 	{ \
-		int i = 0; \
+		unsigned int i = 0; \
 		for (i = 0; i < BITMAP_NWORDS(nbits); i++) { \
 			dst[i].w = src1[i].w _op src2[i].w; \
 		} \
@@ -113,24 +113,26 @@ BITMAP_DEF_BINOP(andnot, & ~)
 
 #undef BITMAP_DEF_BINOP
 
-static inline void bitmap_complement(bitmap *dst, bitmap *src, int nbits)
+static inline void bitmap_complement(bitmap *dst, const bitmap *src, int nbits)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < BITMAP_NWORDS(nbits); i++)
 		dst[i].w = ~src[i].w;
 }
 
-static inline bool bitmap_equal(bitmap *src1, bitmap *src2, int nbits)
+static inline bool bitmap_equal(const bitmap *src1, const bitmap *src2,
+				int nbits)
 {
 	return (memcmp(src1, src2, BITMAP_HEADBYTES(nbits)) == 0)
 		&& (!BITMAP_HASTAIL(nbits)
 		    || (BITMAP_TAIL(src1, nbits) == BITMAP_TAIL(src2, nbits)));
 }
 
-static inline bool bitmap_intersects(bitmap *src1, bitmap *src2, int nbits)
+static inline bool bitmap_intersects(const bitmap *src1, const bitmap *src2,
+				     int nbits)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < BITMAP_HEADWORDS(nbits); i++) {
 		if (src1[i].w & src2[i].w)
@@ -142,9 +144,10 @@ static inline bool bitmap_intersects(bitmap *src1, bitmap *src2, int nbits)
 	return false;
 }
 
-static inline bool bitmap_subset(bitmap *src1, bitmap *src2, int nbits)
+static inline bool bitmap_subset(const bitmap *src1, const bitmap *src2,
+				 int nbits)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < BITMAP_HEADWORDS(nbits); i++) {
 		if (src1[i].w  & ~src2[i].w)
@@ -156,9 +159,9 @@ static inline bool bitmap_subset(bitmap *src1, bitmap *src2, int nbits)
 	return true;
 }
 
-static inline bool bitmap_full(bitmap *bitmap, int nbits)
+static inline bool bitmap_full(const bitmap *bitmap, int nbits)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < BITMAP_HEADWORDS(nbits); i++) {
 		if (bitmap[i].w != -1UL)
@@ -171,9 +174,9 @@ static inline bool bitmap_full(bitmap *bitmap, int nbits)
 	return true;
 }
 
-static inline bool bitmap_empty(bitmap *bitmap, int nbits)
+static inline bool bitmap_empty(const bitmap *bitmap, int nbits)
 {
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < BITMAP_HEADWORDS(nbits); i++) {
 		if (bitmap[i].w != 0)

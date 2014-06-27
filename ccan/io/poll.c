@@ -167,6 +167,34 @@ void backend_plan_changed(struct io_conn *conn)
 		some_always = true;
 }
 
+void backend_wait_changed(const void *wait)
+{
+	unsigned int i;
+
+	for (i = 0; i < num_fds; i++) {
+		struct io_conn *c, *duplex;
+
+		/* Ignore listeners */
+		if (fds[i]->listener)
+			continue;
+		c = (void *)fds[i];
+		for (duplex = c->duplex; c; c = duplex, duplex = NULL) {
+			/* Ignore closing. */
+			if (!c->plan.next)
+				continue;
+			/* Not idle? */
+			if (c->plan.io)
+				continue;
+			/* Waiting on something else? */
+			if (c->plan.u1.const_vp != wait)
+				continue;
+			/* Make it do the next thing. */
+			c->plan = io_always_(c->plan.next, c->plan.next_arg);
+			backend_plan_changed(c);
+		}
+	}
+}
+
 bool add_conn(struct io_conn *c)
 {
 	if (!add_fd(&c->fd, c->plan.pollflag & (POLLIN|POLLOUT)))
@@ -257,12 +285,12 @@ static bool finish_conns(struct io_conn **ready)
 	return false;
 }
 
-void backend_add_timeout(struct io_conn *conn, struct timespec duration)
+void backend_add_timeout(struct io_conn *conn, struct timerel duration)
 {
 	if (!timeouts.base)
 		timers_init(&timeouts, time_now());
 	timer_add(&timeouts, &conn->timeout->timer,
-		  time_add(time_now(), duration));
+		  timeabs_add(time_now(), duration));
 	conn->timeout->conn = conn;
 }
 
@@ -302,11 +330,11 @@ void *do_io_loop(struct io_conn **ready)
 
 	while (!io_loop_return) {
 		int i, r, timeout = INT_MAX;
-		struct timespec now;
+		struct timeabs now;
 		bool some_timeouts = false;
 
 		if (timeouts.base) {
-			struct timespec first;
+			struct timeabs first;
 			struct list_head expired;
 			struct io_timeout *t;
 
@@ -325,7 +353,7 @@ void *do_io_loop(struct io_conn **ready)
 
 			/* Now figure out how long to wait for the next one. */
 			if (timer_earliest(&timeouts, &first)) {
-				uint64_t f = time_to_msec(time_sub(first, now));
+				uint64_t f = time_to_msec(time_between(first, now));
 				if (f < INT_MAX)
 					timeout = f;
 			}

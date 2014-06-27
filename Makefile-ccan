@@ -20,8 +20,10 @@ MODS_NO_SRC := alignof \
 	container_of \
 	darray \
 	endian \
+	minmax \
 	objset \
 	short_types \
+	structeq \
 	tcon \
 	tlist \
 	typesafe_cb \
@@ -60,6 +62,7 @@ MODS_WITH_SRC := antithread \
 	io \
 	isaac \
 	iscsi \
+	jacobson_karels \
 	jmap \
 	json \
 	jset \
@@ -67,6 +70,7 @@ MODS_WITH_SRC := antithread \
 	likely \
 	list \
 	md4 \
+	memmem \
 	mpack \
 	net \
 	nfs \
@@ -85,15 +89,14 @@ MODS_WITH_SRC := antithread \
 	stringmap \
 	strmap \
 	strset \
-	str_talloc \
 	take \
 	tal \
+	tal/grab_file \
 	tal/link \
 	tal/path \
 	tal/str \
 	tal/talloc \
 	talloc \
-	talloc_link \
 	tally \
 	tap \
 	time \

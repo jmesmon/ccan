@@ -1,6 +1,6 @@
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "config.h"
 
 /**
  * antithread - Accelerated Native Technology Implementation of "threads"
@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
 		printf("ccan/noerr\n");
 		printf("ccan/read_write_all\n"); /* For tests */
 		printf("ccan/talloc\n");
+		printf("ccan/typesafe_cb\n");
 		return 0;
 	}
 

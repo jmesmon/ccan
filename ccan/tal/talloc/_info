@@ -1,6 +1,6 @@
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
-#include "config.h"
 
 /**
  * tal/talloc - an implementation of the tal interface in terms of talloc.
@@ -27,6 +27,9 @@ int main(int argc, char *argv[])
 	if (strcmp(argv[1], "depends") == 0) {
 		printf("ccan/take\n");
 		printf("ccan/typesafe_cb\n");
+		printf("ccan/compiler\n");
+		printf("ccan/likely\n");
+		printf("ccan/str\n");
 		printf("talloc\n");
 		return 0;
 	}

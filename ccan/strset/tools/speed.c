@@ -19,8 +19,8 @@
  #15: Post-Churn lookup (miss):   175-186(176)
  #16: Post-Churn lookup (random):   522-534(525)
  */
-#include <ccan/str_talloc/str_talloc.h>
-#include <ccan/grab_file/grab_file.h>
+#include <ccan/tal/str/str.h>
+#include <ccan/tal/grab_file/grab_file.h>
 #include <ccan/talloc/talloc.h>
 #include <ccan/time/time.h>
 #include <ccan/strset/strset.c>
@@ -32,50 +32,44 @@
 #include <sys/time.h>
 
 /* Nanoseconds per operation */
-static size_t normalize(const struct timeval *start,
-			const struct timeval *stop,
+static size_t normalize(const struct timeabs *start,
+			const struct timeabs *stop,
 			unsigned int num)
 {
-	struct timeval diff;
-
-	timersub(stop, start, &diff);
-
-	/* Floating point is more accurate here. */
-	return (double)(diff.tv_sec * 1000000 + diff.tv_usec)
-		/ num * 1000;
+	return time_to_nsec(time_divide(time_between(*stop, *start), num));
 }
 
 int main(int argc, char *argv[])
 {
 	size_t i, j, num;
-	struct timeval start, stop;
+	struct timeabs start, stop;
 	struct strset set;
 	char **words, **misswords;
 
-	words = strsplit(NULL, grab_file(NULL,
-					 argv[1] ? argv[1] : "/usr/share/dict/words",
-					 NULL), "\n");
+	words = tal_strsplit(NULL, grab_file(NULL,
+					     argv[1] ? argv[1] : "/usr/share/dict/words"),
+			     "\n", STR_NO_EMPTY);
 	strset_init(&set);
-	num = talloc_array_length(words) - 1;
+	num = tal_count(words) - 1;
 	printf("%zu words\n", num);
 
 	/* Append and prepend last char for miss testing. */
-	misswords = talloc_array(words, char *, num);
+	misswords = tal_arr(words, char *, num);
 	for (i = 0; i < num; i++) {
 		char lastc;
 		if (strlen(words[i]))
 			lastc = words[i][strlen(words[i])-1];
 		else
 			lastc = 'z';
-		misswords[i] = talloc_asprintf(misswords, "%c%s%c%c",
-					       lastc, words[i], lastc, lastc);
+		misswords[i] = tal_fmt(misswords, "%c%s%c%c",
+				       lastc, words[i], lastc, lastc);
 	}
 
 	printf("#01: Initial insert: ");
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++)
-		strset_set(&set, words[i]);
+		strset_add(&set, words[i]);
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
 
@@ -88,7 +82,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++)
-		if (!strset_test(&set, words[i]))
+		if (!strset_get(&set, words[i]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
@@ -97,7 +91,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++) {
-		if (strset_test(&set, misswords[i]))
+		if (strset_get(&set, misswords[i]))
 			abort();
 	}
 	stop = time_now();
@@ -108,7 +102,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0, j = 0; i < num; i++, j = (j + 10007) % num)
-		if (!strset_test(&set, words[j]))
+		if (!strset_get(&set, words[j]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
@@ -117,7 +111,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++)
-		if (!strset_clear(&set, words[i]))
+		if (!strset_del(&set, words[i]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
@@ -126,7 +120,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++)
-		strset_set(&set, words[i]);
+		strset_add(&set, words[i]);
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
 
@@ -134,7 +128,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i+=2)
-		if (!strset_clear(&set, words[i]))
+		if (!strset_del(&set, words[i]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
@@ -144,7 +138,7 @@ int main(int argc, char *argv[])
 
 	start = time_now();
 	for (i = 0; i < num; i+=2)
-		strset_set(&set, misswords[i]);
+		strset_add(&set, misswords[i]);
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
 
@@ -152,10 +146,10 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 1; i < num; i+=2)
-		if (!strset_test(&set, words[i]))
+		if (!strset_get(&set, words[i]))
 			abort();
 	for (i = 0; i < num; i+=2) {
-		if (!strset_test(&set, misswords[i]))
+		if (!strset_get(&set, misswords[i]))
 			abort();
 	}
 	stop = time_now();
@@ -165,10 +159,10 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i+=2)
-		if (strset_test(&set, words[i]))
+		if (strset_get(&set, words[i]))
 			abort();
 	for (i = 1; i < num; i+=2) {
-		if (strset_test(&set, misswords[i]))
+		if (strset_get(&set, misswords[i]))
 			abort();
 	}
 	stop = time_now();
@@ -179,9 +173,9 @@ int main(int argc, char *argv[])
 	printf("#11: Churn 1: ");
 	start = time_now();
 	for (j = 0; j < num; j+=2) {
-		if (!strset_clear(&set, misswords[j]))
+		if (!strset_del(&set, misswords[j]))
 			abort();
-		if (!strset_set(&set, words[j]))
+		if (!strset_add(&set, words[j]))
 			abort();
 	}
 	stop = time_now();
@@ -190,9 +184,9 @@ int main(int argc, char *argv[])
 	printf("#12: Churn 2: ");
 	start = time_now();
 	for (j = 1; j < num; j+=2) {
-		if (!strset_clear(&set, words[j]))
+		if (!strset_del(&set, words[j]))
 			abort();
-		if (!strset_set(&set, misswords[j]))
+		if (!strset_add(&set, misswords[j]))
 			abort();
 	}
 	stop = time_now();
@@ -201,9 +195,9 @@ int main(int argc, char *argv[])
 	printf("#13: Churn 3: ");
 	start = time_now();
 	for (j = 1; j < num; j+=2) {
-		if (!strset_clear(&set, misswords[j]))
+		if (!strset_del(&set, misswords[j]))
 			abort();
-		if (!strset_set(&set, words[j]))
+		if (!strset_add(&set, words[j]))
 			abort();
 	}
 	stop = time_now();
@@ -214,7 +208,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++)
-		if (!strset_test(&set, words[i]))
+		if (!strset_get(&set, words[i]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
@@ -223,7 +217,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0; i < num; i++) {
-		if (strset_test(&set, misswords[i]))
+		if (strset_get(&set, misswords[i]))
 			abort();
 	}
 	stop = time_now();
@@ -234,7 +228,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	start = time_now();
 	for (i = 0, j = 0; i < num; i++, j = (j + 10007) % num)
-		if (!strset_test(&set, words[j]))
+		if (!strset_get(&set, words[j]))
 			abort();
 	stop = time_now();
 	printf(" %zu ns\n", normalize(&start, &stop, num));
