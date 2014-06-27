@@ -3,10 +3,11 @@
 #include <string.h>
 
 /**
- * memmem - Trivial module providing a memmem() implementation
+ * mem - provide various functions for handling memory (very similar to str for strings)
  *
  * This code implements memmem() if it's not alreayd available in the
- * C library.
+ * C library. It also provides (void *) + length replacements for functions
+ * that normally operate on NUL terminated strings.
  *
  * License: CC0
  */
