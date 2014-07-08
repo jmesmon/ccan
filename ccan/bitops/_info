@@ -2,9 +2,9 @@
 #include <string.h>
 
 /**
- * bits - bit operations
+ * bitops - bit operations
  *
- * Provide bit level operations on integral types
+ * Provide useful bit-level operations on integral types
  *
  * License: CC0 (Public Domain)
  * Author: Cody P Schafer <dev@codyps.com>

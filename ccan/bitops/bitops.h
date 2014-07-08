@@ -1,7 +1,16 @@
-#ifndef CCAN_BITS_H_
-#define CCAN_BITS_H_
+#ifndef CCAN_BITOPS_H_
+#define CCAN_BITOPS_H_
 
+#include "config.h"
 #include <ccan/ilog/ilog.h>
+
+#include <stdint.h>
+
+#define bit_mask_nz(bits) ((UINTMAX_C(1) << ((bits) - 1) << 1) - 1)
+static inline uintmax_t bit_mask(unsigned bits)
+{
+	return bits ? bit_mask_nz(bits) : 0;
+}
 
 #define DEF_RUP_P2(suffix, type)		\
 static inline type round_up_pow2_##suffix(type i)	\
