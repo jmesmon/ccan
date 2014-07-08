@@ -68,6 +68,7 @@ MODS_WITH_SRC := antithread \
 	lbalance \
 	likely \
 	list \
+	maskn \
 	md4 \
 	memmem \
 	net \
