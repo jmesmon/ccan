@@ -1,0 +1,40 @@
+#include "config.h"
+#include <string.h>
+
+/**
+ * maskn - generate masks of N bits for a given range
+ *
+ * Masks of N bits as opposed to arbitrary masks (where any bits can be 0 or
+ * 1), here only the trailing bits are 0, all others are 1.
+ *
+ * This ends up assisting in interfacing with hardware that has the ability to
+ * match via masks. The current functions generate the largest mask-ranges that
+ * are within the given range and are fixed to one edge.
+ *
+ * Future:
+ *  - largest non-fixed mask-range within range
+ *  - smallest non-fixed mask-range containing range
+ *  - smallest fixed (to high or low) range containing range
+ *  - provide a "fudge" amount to be applied to the fixed ranges to nudge them
+ *    towards more optimal ranges.
+ *
+ * License: LGPL (v3 or any later version)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		puts("ccan/compiler");
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+                return 0;
+        }
+
+	return 1;
+}
