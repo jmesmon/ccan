@@ -1,0 +1,4 @@
+include_rules
+
+: |> tools/configurator/configurator >%o |> config.h
+
