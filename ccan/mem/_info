@@ -1,0 +1,30 @@
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+
+/**
+ * mem - provide various functions for handling memory (very similar to str for strings)
+ *
+ * This code provides (void *) + length replacements for functions
+ * that normally operate on NUL terminated strings.
+ *
+ * License: CC0
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		printf("ccan/memmem");
+		return 0;
+	}
+
+	if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/array_size");
+		return 0;
+	}
+
+	return 1;
+}
