@@ -21,3 +21,4 @@ scores/
 configuratortest.c
 configurator.out
 config.h.tmp
+ccan/*/Tupfile

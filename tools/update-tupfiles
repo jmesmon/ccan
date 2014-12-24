@@ -1,0 +1,11 @@
+#! /bin/sh
+
+: ${DIR:=$(dirname $(dirname $0))/ccan}
+
+for d in $DIR/*; do
+	if ! [ -d "$d" ]; then
+		continue
+	fi
+
+	cp $DIR/Tupfile.default $d/Tupfile
+done
