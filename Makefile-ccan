@@ -79,7 +79,7 @@ MODS_WITH_SRC := antithread \
 	ogg_to_pcm \
 	opt \
 	ptr_valid \
-	pr_debug \
+	pr_log \
 	rbtree \
 	rbuf \
 	read_write_all \
