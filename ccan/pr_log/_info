@@ -9,7 +9,7 @@
  *
  *	int main(int argc, char *argv[])
  *	{
- *		pr_debug(1, "It's working");
+ *		pr_debug("I:It's working");
  *		return 0;
  *	}
  *
