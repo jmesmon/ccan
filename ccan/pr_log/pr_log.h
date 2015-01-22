@@ -33,4 +33,10 @@ int debug_level(void);
 #define pr_info(...)   pr_log(LOG_INFO   __VA_ARGS__)
 #define pr_debug(...)  pr_log(LOG_DEBUG  __VA_ARGS__)
 
+#ifndef NDEBUG
+# define pr_devel(...)  pr_log("-9:" __VA_ARGS__)
+#else
+# define pr_devel(...)
+#endif
+
 #endif
