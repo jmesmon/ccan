@@ -2,14 +2,17 @@
 #include "config.h"
 
 /**
- * pr_debug - a simple "print only in debug mode" helper using env vars
+ * pr_log - a simple "print only in debug mode" helper using env vars
  *
  * Example:
- *	#include <ccan/pr_debug/pr_debug.h>
+ *	#include <ccan/pr_log/pr_log.h>
  *
  *	int main(int argc, char *argv[])
  *	{
- *		pr_debug("I:It's working");
+ *		pr_debug("It's working\n");
+ *		pr_log("I: Informational %d\n", 3);
+ *		pr_log("-9: Really important\n");
+ *		pr_log("9: Really un-important\n");
  *		return 0;
  *	}
  *

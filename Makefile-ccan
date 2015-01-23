@@ -13,7 +13,6 @@ MODS_NO_SRC := alignof \
 	asearch \
 	bitmap \
 	build_assert \
-	bytestring \
 	cast \
 	check_type \
 	compiler \
@@ -41,7 +40,9 @@ MODS_WITH_SRC := antithread \
 	block_pool \
 	breakpoint \
 	btree \
+	bytestring \
 	ccan_tokenizer \
+	cdump \
 	charset \
 	ciniparser \
 	crc \
@@ -50,6 +51,7 @@ MODS_WITH_SRC := antithread \
 	daemonize \
 	daemon_with_notify \
 	dgraph \
+	eratosthenes \
 	err \
 	failtest \
 	foreach \
@@ -59,27 +61,31 @@ MODS_WITH_SRC := antithread \
 	htable \
 	idtree \
 	ilog \
+	invbloom \
 	io \
 	isaac \
 	iscsi \
 	jacobson_karels \
 	jmap \
-	json \
 	jset \
+	json \
 	lbalance \
 	likely \
 	list \
+	lqueue \
+	lstack \
 	maskn \
 	md4 \
-	mpack \
 	mem \
+	mpack \
 	net \
 	nfs \
 	noerr \
 	ogg_to_pcm \
 	opt \
-	ptr_valid \
 	pr_log \
+	ptr_valid \
+	pushpull \
 	rbtree \
 	rbuf \
 	read_write_all \

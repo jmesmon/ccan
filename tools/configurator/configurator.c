@@ -114,10 +114,18 @@ static struct test tests[] = {
 	  "return __builtin_clzl(1) == (sizeof(long)*8 - 1) ? 0 : 1;" },
 	{ "HAVE_BUILTIN_CLZLL", INSIDE_MAIN, NULL, NULL,
 	  "return __builtin_clzll(1) == (sizeof(long long)*8 - 1) ? 0 : 1;" },
+	{ "HAVE_BUILTIN_CTZ", INSIDE_MAIN, NULL, NULL,
+	  "return __builtin_ctz(1 << (sizeof(int)*8 - 1)) == (sizeof(int)*8 - 1) ? 0 : 1;" },
+	{ "HAVE_BUILTIN_CTZL", INSIDE_MAIN, NULL, NULL,
+	  "return __builtin_ctzl(1UL << (sizeof(long)*8 - 1)) == (sizeof(long)*8 - 1) ? 0 : 1;" },
+	{ "HAVE_BUILTIN_CTZLL", INSIDE_MAIN, NULL, NULL,
+	  "return __builtin_ctzll(1ULL << (sizeof(long long)*8 - 1)) == (sizeof(long long)*8 - 1) ? 0 : 1;" },
 	{ "HAVE_BUILTIN_CONSTANT_P", INSIDE_MAIN, NULL, NULL,
 	  "return __builtin_constant_p(1) ? 0 : 1;" },
 	{ "HAVE_BUILTIN_EXPECT", INSIDE_MAIN, NULL, NULL,
 	  "return __builtin_expect(argc == 1, 1) ? 0 : 1;" },
+	{ "HAVE_BUILTIN_FFS", INSIDE_MAIN, NULL, NULL,
+	  "return __builtin_ffs(0) == 0 ? 0 : 1;" },
 	{ "HAVE_BUILTIN_FFSL", INSIDE_MAIN, NULL, NULL,
 	  "return __builtin_ffsl(0L) == 0 ? 0 : 1;" },
 	{ "HAVE_BUILTIN_FFSLL", INSIDE_MAIN, NULL, NULL,
@@ -126,6 +134,11 @@ static struct test tests[] = {
 	  "return __builtin_popcountl(255L) == 8 ? 0 : 1;" },
 	{ "HAVE_BUILTIN_TYPES_COMPATIBLE_P", INSIDE_MAIN, NULL, NULL,
 	  "return __builtin_types_compatible_p(char *, int) ? 1 : 0;" },
+	{ "HAVE_ICCARM_INTRINSICS", DEFINES_FUNC, NULL, NULL,
+	  "#include <intrinsics.h>\n"
+	  "int func(int v) {\n"
+	  "	return __CLZ(__RBIT(v));\n"
+	  "}" },
 	{ "HAVE_BYTESWAP_H", OUTSIDE_MAIN, NULL, NULL,
 	  "#include <byteswap.h>\n" },
 	{ "HAVE_C11_GENERIC", INSIDE_MAIN, NULL, NULL,
@@ -202,6 +215,12 @@ static struct test tests[] = {
 	  "#include <string.h>\n"
 	  "static void *func(void *h, size_t hl, void *n, size_t nl) {\n"
 	  "return memmem(h, hl, n, nl);"
+	  "}\n", },
+	{ "HAVE_MEMRCHR", DEFINES_FUNC, NULL, NULL,
+	  "#define _GNU_SOURCE\n"
+	  "#include <string.h>\n"
+	  "static void *func(void *s, int c, size_t n) {\n"
+	  "return memrchr(s, c, n);"
 	  "}\n", },
 	{ "HAVE_MMAP", DEFINES_FUNC, NULL, NULL,
 	  "#include <sys/mman.h>\n"

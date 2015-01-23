@@ -6,7 +6,7 @@ include('static-configuration');
 
 $tarballsize=round((filesize($argv[3]."/ccan.tar.bz2") + 1023) / 1024);
 ?>
-
+<div class='content'>
 <h1> List of all CCAN modules: </h1>
 
 <p>
@@ -19,7 +19,7 @@ download.
 Or you can just download the <a href="ccan.tar.bz2">tarball of everything including CCAN tools (<?=$tarballsize?>K)</a>.
 </p>
 
-<table align="center" width="80%" border="0" cellpadding="3" cellspacing="1">
+<table align="center" cellpadding="3" cellspacing="1">
 <th align="left">Name</th>
 <th align="left">Summary / Link to details</th>
 <th align="right">Download</th>
@@ -50,7 +50,7 @@ foreach ($modules as $module) {
 
 (This is contributed code which was dumped here: these gems may need some polishing.)
 
-<table align="center" width="80%" border="0" cellpadding="3" cellspacing="1">
+<table align="center" cellpadding="3" cellspacing="1">
 
 <?php
 $d = dir($argv[2]);
@@ -70,5 +70,5 @@ foreach ($dirs as $dir) {
 $d->close();
 ?>
 </table>
-<hr>
+</div>
 </body></html>

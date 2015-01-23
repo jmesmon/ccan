@@ -47,3 +47,18 @@ void *memcchr(void const *data, int c, size_t data_len)
 
 	return NULL;
 }
+
+#if !HAVE_MEMRCHR
+void *memrchr(const void *s, int c, size_t n)
+{
+	unsigned char *p = (unsigned char *)s;
+
+	while (n) {
+		if (p[n-1] == c)
+			return p + n - 1;
+		n--;
+	}
+
+	return NULL;
+}
+#endif
