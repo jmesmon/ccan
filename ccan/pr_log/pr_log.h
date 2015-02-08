@@ -1,6 +1,6 @@
 /* Licensed under LGPLv2.1+ - see LICENSE file for details */
-#ifndef CCAN_DEBUG_H_
-#define CCAN_DEBUG_H_
+#ifndef CCAN_PR_LOG_H_
+#define CCAN_PR_LOG_H_
 
 #include <stdbool.h>
 #include <ccan/compiler/compiler.h>
@@ -9,20 +9,6 @@
 # define CCAN_PR_LOG_DEFAULT_LEVEL 0
 #endif
 
-#ifdef CCAN_PR_LOG_DISABLE
-static PRINTF_FMT(1,2) inline void pr_log(char const *fmt, ...)
-{
-	(void)fmt;
-}
-static inline bool debug_is(int lvl) { (void)lvl; return false; }
-static inline int debug_level(void) { return 0; }
-#else
-void PRINTF_FMT(1,2) pr_log(char const *fmt, ...);
-bool debug_is(int lvl);
-int debug_level(void);
-#endif
-
-/* TODO: generate the following defines somehow */
 #define LOG_EMERG "-4:"
 #define LOG_ALERT "-3:"
 #define LOG_CRIT  "-2:"
@@ -31,6 +17,27 @@ int debug_level(void);
 #define LOG_NOTICE "1:"
 #define LOG_INFO   "2:"
 #define LOG_DEBUG  "3:"
+
+#ifndef CCAN_PR_LOG_DISABLE
+/**
+ * pr_log - print output based on the given logging level
+ *
+ * Example:
+ *
+ *	pr_log(LOG_EMERG "something went terribly wrong\n");
+ *	pr_log("N: notice this printout\n");
+ */
+void PRINTF_FMT(1,2) pr_log(char const *fmt, ...);
+bool debug_is(int lvl);
+int debug_level(void);
+#else
+static PRINTF_FMT(1,2) inline void pr_log(char const *fmt, ...)
+{
+	(void)fmt;
+}
+static inline bool debug_is(int lvl) { (void)lvl; return false; }
+static inline int debug_level(void) { return 0; }
+#endif
 
 #define pr_emerg(...)  pr_log(LOG_EMERG  __VA_ARGS__)
 #define pr_alert(...)  pr_log(LOG_ALERT  __VA_ARGS__)
