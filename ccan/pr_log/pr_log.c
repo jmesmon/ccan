@@ -1,3 +1,4 @@
+/* Licensed under LGPLv2.1+ - see LICENSE file for details */
 #include "pr_log.h"
 
 #include <ctype.h>
@@ -21,8 +22,8 @@ int debug_level(void)
 		return debug;
 	char *c = getenv("DEBUG");
 	if (!c) {
-		debug = 0;
-		return 0;
+		debug = CCAN_PR_LOG_DEFAULT_LEVEL;
+		return debug;
 	}
 
 	debug = atoi(c);

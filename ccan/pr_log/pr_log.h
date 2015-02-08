@@ -1,10 +1,15 @@
+/* Licensed under LGPLv2.1+ - see LICENSE file for details */
 #ifndef CCAN_DEBUG_H_
 #define CCAN_DEBUG_H_
 
 #include <stdbool.h>
 #include <ccan/compiler/compiler.h>
 
-#ifdef NDEBUG
+#ifndef CCAN_PR_LOG_DEFAULT_LEVEL
+# define CCAN_PR_LOG_DEFAULT_LEVEL 0
+#endif
+
+#ifdef CCAN_PR_LOG_DISABLE
 static PRINTF_FMT(1,2) inline void pr_log(char const *fmt, ...)
 {
 	(void)fmt;
@@ -37,7 +42,7 @@ int debug_level(void);
 #define pr_debug(...)  pr_log(LOG_DEBUG  __VA_ARGS__)
 
 #ifdef DEBUG
-# define pr_devel(...)  pr_log("-9:" __VA_ARGS__)
+# define pr_devel(...)  pr_debug(__VA_ARGS__)
 #else
 static PRINTF_FMT(1,2) inline void pr_check_printf_args(const char *fmt, ...)
 {
