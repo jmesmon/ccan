@@ -1,0 +1,24 @@
+/* ex: ft=c
+ *
+ * Levels are taken from syslog & linux's printk/pr_*()
+ * EMERG
+ * ALERT
+ * CRIT
+ * ERR
+ * WARNING
+ * NOTICE
+ * INFO
+ * DEBUG
+ * DEVEL (compile time conditional, linux specific)
+ * TRACE (handled seperately, linux specific)
+ *
+ */
+
+DL(EMERG,'M',-4)
+DL(ALERT,'A',-3)
+DL(CRIT,'C',-2)
+DL(ERROR,'E',-1)
+DL(WARN,'W',0)
+DL(NOTICE,'N',1)
+DL(INFO,'I',2)
+DL(DEBUG,'D',3)

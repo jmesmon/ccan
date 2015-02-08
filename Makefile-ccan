@@ -80,6 +80,7 @@ MODS_WITH_SRC := antithread \
 	noerr \
 	ogg_to_pcm \
 	opt \
+	pr_log \
 	ptr_valid \
 	pushpull \
 	rbtree \
