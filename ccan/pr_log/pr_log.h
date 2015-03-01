@@ -6,7 +6,7 @@
 #include <ccan/compiler/compiler.h>
 
 #ifndef CCAN_PR_LOG_DEFAULT_LEVEL
-# define CCAN_PR_LOG_DEFAULT_LEVEL 0
+# define CCAN_PR_LOG_DEFAULT_LEVEL 6
 #endif
 
 #define LOG_EMERG  "<0>"

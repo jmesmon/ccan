@@ -32,30 +32,11 @@ int debug_level(void)
 	return debug;
 }
 
-static int map_char_to_level(char i)
-{
-	switch (i) {
-# define DL(name, ch, lvl)	\
-	case ch:		\
-		return lvl;
-# include "pr_log_levels.def"
-# undef DL
-	default:
-		return INT_MIN;
-	}
-}
-
 void pr_log(char const fmt[static 1], ...)
 {
 	int level = INT_MIN;
-	if (fmt[0] == '-' && cisdigit(fmt[1]) && fmt[2] == ':')
-		level = - (fmt[1] - '0');
-	else if (fmt[0] && fmt[1] == ':') {
-		if (cisdigit(fmt[0]))
-			level = fmt[0] - '0';
-		else
-			level = map_char_to_level(fmt[0]);
-	}
+	if (fmt[0] == '<' && cisdigit(fmt[1]) && fmt[2] == '>')
+		level = fmt[1] - '0';
 
 	if (!debug_is(level))
 		return;
