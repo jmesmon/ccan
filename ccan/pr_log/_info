@@ -2,7 +2,13 @@
 #include "config.h"
 
 /**
- * pr_log - a simple "print only in debug mode" helper using env vars
+ * pr_log - print things with varying levels of importance
+ *
+ * pr_log is a "logger" styled similarly to Linux's printk() and pr_*() macros.
+ * The amount of debug output is controlled by the value of the `DEBUG`
+ * environment variable.
+ *
+ * It provides work-alikes for Linux's pr_devel, pr_debug, pr_info, etc macros.
  *
  * Example:
  *	#include <ccan/pr_log/pr_log.h>
@@ -16,8 +22,8 @@
  *		return 0;
  *	}
  *
- * License: LGPL (v3 or any later version)
- * Author: Cody P Schafer <devel@codyps.com>
+ * License: LGPL (v2.1 or any later version)
+ * Author: Cody P Schafer <dev@codyps.com>
  */
 int main(int argc, char *argv[])
 {
@@ -27,6 +33,7 @@ int main(int argc, char *argv[])
 
 	if (strcmp(argv[1], "depends") == 0) {
 		printf("ccan/compiler\n");
+		printf("ccan/str\n");
 		return 0;
 	}
 
