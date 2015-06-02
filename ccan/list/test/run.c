@@ -19,13 +19,14 @@ static LIST_HEAD(static_list);
 int main(int argc, char *argv[])
 {
 	struct parent parent;
-	struct child c1, c2, c3, *c, *n;
+	struct child c1, c2, c3, x1, *c, *n;
 	unsigned int i;
 	struct list_head list = LIST_HEAD_INIT(list);
 	opaque_t *q, *nq;
 	struct list_head opaque_list = LIST_HEAD_INIT(opaque_list);
+	LIST_HEAD(rev);
 
-	plan_tests(70);
+	plan_tests(92);
 	/* Test LIST_HEAD, LIST_HEAD_INIT, list_empty and check_list */
 	ok1(list_empty(&static_list));
 	ok1(list_check(&static_list, NULL));
@@ -148,12 +149,40 @@ int main(int argc, char *argv[])
 			list_del_from(&parent.children, &c->list);
 			break;
 		}
+
+		/* prepare for list_for_each_rev_safe test */
+		list_add(&rev, &c->list);
+
 		ok1(list_check(&parent.children, NULL));
 		if (i > 2)
 			break;
 	}
 	ok1(i == 3);
 	ok1(list_empty(&parent.children));
+
+	/* Test list_for_each_rev_safe, list_del and list_del_from. */
+	i = 0;
+	list_for_each_rev_safe(&rev, c, n, list) {
+		switch (i++) {
+		case 0:
+			ok1(c == &c1);
+			list_del(&c->list);
+			break;
+		case 1:
+			ok1(c == &c2);
+			list_del_from(&rev, &c->list);
+			break;
+		case 2:
+			ok1(c == &c3);
+			list_del_from(&rev, &c->list);
+			break;
+		}
+		ok1(list_check(&rev, NULL));
+		if (i > 2)
+			break;
+	}
+	ok1(i == 3);
+	ok1(list_empty(&rev));
 
 	/* Test list_node_init: safe to list_del after this. */
 	list_node_init(&c->list);
@@ -215,5 +244,62 @@ int main(int argc, char *argv[])
 	ok1(list_top(&parent.children, struct child, list) == NULL);
 	ok1(list_tail(&parent.children, struct child, list) == NULL);
 	ok1(list_pop(&parent.children, struct child, list) == NULL);
+
+	/* Test list_add_before and list_add_after */
+	list_add(&parent.children, &c1.list);
+	list_add_after(&parent.children, &c1.list, &c2.list);
+	ok1(list_check(&parent.children, "list_add_after"));
+
+	i = 0;
+	list_for_each(&parent.children, c, list) {
+		switch (i++) {
+		case 0:
+			ok1(c == &c1);
+			break;
+		case 1:
+			ok1(c == &c2);
+			break;
+		}
+	}
+	ok1(i == 2);
+
+	list_add_before(&parent.children, &c2.list, &c3.list);
+	ok1(list_check(&parent.children, "list_add_before"));
+
+	i = 0;
+	list_for_each(&parent.children, c, list) {
+		switch (i++) {
+		case 0:
+			ok1(c == &c1);
+			break;
+		case 1:
+			ok1(c == &c3);
+			break;
+		case 2:
+			ok1(c == &c2);
+			break;
+		}
+	}
+	ok1(i == 3);
+
+	/* test list_swap */
+	list_swap(&c3.list, &x1.list);
+	ok1(list_check(&parent.children, "list_swap"));
+	i = 0;
+	list_for_each(&parent.children, c, list) {
+		switch (i++) {
+		case 0:
+			ok1(c == &c1);
+			break;
+		case 1:
+			ok1(c == &x1);
+			break;
+		case 2:
+			ok1(c == &c2);
+			break;
+		}
+	}
+	ok1(i == 3);
+
 	return exit_status();
 }

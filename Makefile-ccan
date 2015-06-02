@@ -35,6 +35,7 @@ MODS_WITH_SRC := antithread \
 	asprintf \
 	autodata \
 	avl \
+	base64 \
 	bdelta \
 	bheap \
 	block_pool \
@@ -48,6 +49,8 @@ MODS_WITH_SRC := antithread \
 	crc \
 	crcsync \
 	cpuid \
+	crypto/sha256 \
+	crypto/shachain \
 	daemonize \
 	daemon_with_notify \
 	dgraph \
@@ -81,9 +84,11 @@ MODS_WITH_SRC := antithread \
 	net \
 	nfs \
 	noerr \
+	ntdb \
 	ogg_to_pcm \
 	opt \
 	pr_log \
+	ptrint \
 	ptr_valid \
 	pushpull \
 	rbtree \
@@ -93,6 +98,8 @@ MODS_WITH_SRC := antithread \
 	siphash \
 	sparse_bsearch \
 	str \
+	str/hex \
+	stringbuilder \
 	stringmap \
 	strmap \
 	strset \
@@ -101,6 +108,7 @@ MODS_WITH_SRC := antithread \
 	tal/grab_file \
 	tal/link \
 	tal/path \
+	tal/stack \
 	tal/str \
 	tal/talloc \
 	talloc \

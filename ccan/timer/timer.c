@@ -36,6 +36,7 @@ void timers_init(struct timers *timers, struct timeabs start)
 	list_head_init(&timers->far);
 	timers->base = time_to_grains(start);
 	timers->first = -1ULL;
+	memset(timers->firsts, 0xFF, sizeof(timers->firsts));
 	for (i = 0; i < ARRAY_SIZE(timers->level); i++)
 		timers->level[i] = NULL;
 }
@@ -53,15 +54,20 @@ static void timer_add_raw(struct timers *timers, struct timer *t)
 {
 	struct list_head *l;
 	unsigned int level = level_of(timers, t->time);
+	uint64_t *first;
 
-	if (!timers->level[level])
+	if (!timers->level[level]) {
 		l = &timers->far;
-	else {
+		first = &timers->firsts[ARRAY_SIZE(timers->level)];
+	} else {
 		int off = (t->time >> (level*TIMER_LEVEL_BITS)) & (PER_LEVEL-1);
 		l = &timers->level[level]->list[off];
+		first = &timers->firsts[level];
 	}
 
 	list_add_tail(l, &t->list);
+	if (t->time < *first)
+		*first = t->time;
 }
 
 void timer_init(struct timer *t)
@@ -132,7 +138,10 @@ static void add_level(struct timers *timers, unsigned int level)
 		timer_add_raw(timers, t);
 }
 
+/* We don't need to search past the first at level 0, since the
+ * bucket range is 1; they're all the same. */
 static const struct timer *find_first(const struct list_head *list,
+				      unsigned int level,
 				      const struct timer *prev)
 {
 	struct timer *t;
@@ -140,67 +149,84 @@ static const struct timer *find_first(const struct list_head *list,
 	list_for_each(list, t, list) {
 		if (!prev || t->time < prev->time)
 			prev = t;
+		if (level == 0)
+			break;
 	}
 	return prev;
 }
 
-static const struct timer *get_first(const struct timers *timers)
+/* Update level's first watermark, and return overall first. */
+static const struct timer *first_for_level(struct timers *timers,
+					   size_t level,
+					   const struct timer *level_first,
+					   const struct timer *first)
 {
-	unsigned int level, i, off;
-	bool need_next;
-	uint64_t base;
-	const struct timer *found = NULL;
-	struct list_head *h;
-
-	if (timers->first < timers->base) {
-		base = timers->base;
-		level = 0;
+	if (level_first) {
+		timers->firsts[level] = level_first->time;
+		if (!first || level_first->time < first->time)
+			first = level_first;
 	} else {
-		/* May not be accurate, due to timer_del / expiry. */
-		level = level_of(timers, timers->first);
-		base = timers->first >> (TIMER_LEVEL_BITS * level);
+		timers->firsts[level] = -1ULL;
+	}
+	return first;
+}
+
+static bool level_may_beat(const struct timers *timers, size_t level,
+			   const struct timer *first)
+{
+	return !first || timers->firsts[level] < first->time;
+}
+
+/* FIXME: Suboptimal */
+static const struct timer *brute_force_first(struct timers *timers)
+{
+	unsigned int l, i;
+	const struct timer *found = NULL;
+
+	for (l = 0; l < ARRAY_SIZE(timers->level) && timers->level[l]; l++) {
+		const struct timer *t = NULL;
+
+		/* Do we know they don't have a better one? */
+		if (!level_may_beat(timers, l, found))
+			continue;
+
+		/* Find first timer on this level. */
+		for (i = 0; i < PER_LEVEL; i++)
+			t = find_first(&timers->level[l]->list[i], l, t);
+
+		found = first_for_level(timers, l, t, found);
 	}
 
-next:
-	if (!timers->level[level])
-		return find_first(&timers->far, NULL);
-
-	need_next = false;
-	off = base % PER_LEVEL;
-	for (i = 0; i < PER_LEVEL; i++) {
-		h = &timers->level[level]->list[(i+off) % PER_LEVEL];
-
-		if (!list_empty(h))
-			break;
-
-		/* We haven't cascaded yet, so if we wrap, we'll need to
-		 * check next level, too. */
-		if (i + off == PER_LEVEL)
-			need_next = true;
-	}
-	if (i == PER_LEVEL) {
-		level++;
-		base >>= TIMER_LEVEL_BITS;
-		goto next;
+	/* Check (and update) far list if there's a chance. */
+	l = ARRAY_SIZE(timers->level);
+	if (level_may_beat(timers, l, found)) {
+		const struct timer *t = find_first(&timers->far, l, NULL);
+		found = first_for_level(timers, l, t, found);
 	}
 
-	/* Level 0 is exact, so they're all the same. */
-	if (level == 0)
-		found = list_top(h, struct timer, list);
-	else
-		found = find_first(h, NULL);
+	return found;
+}
 
-	if (need_next) {
-		if (!timers->level[level+1]) {
-			found = find_first(&timers->far, found);
-		} else {
-			base >>= TIMER_LEVEL_BITS;
-			off = base % PER_LEVEL;
-			h = &timers->level[level+1]->list[off];
-			found = find_first(h, found);
+static const struct timer *get_first(struct timers *timers)
+{
+	/* We can have just far timers, for example. */
+	if (timers->level[0]) {
+		/* First search rest of lower buckets; we've already spilled
+		 * so if we find one there we don't need to search further. */
+		unsigned int i, off = timers->base % PER_LEVEL;
+
+		for (i = off; i < PER_LEVEL; i++) {
+			struct list_head *h = &timers->level[0]->list[i];
+			if (!list_empty(h))
+				return find_first(h, 0, NULL);
 		}
 	}
-	return found;
+
+	/* From here on, we're searching non-normalized parts of the
+	 * data structure, which is much subtler.
+	 *
+	 * So we brute force. */
+	return brute_force_first(timers);
 }
 
 static bool update_first(struct timers *timers)
@@ -210,7 +236,7 @@ static bool update_first(struct timers *timers)
 	if (!found) {
 		timers->first = -1ULL;
 		return false;
-	}
+ 	}
 
 	timers->first = found->time;
 	return true;
@@ -355,13 +381,13 @@ struct timers *timers_check(const struct timers *timers, const char *abortstr)
 
 		h = &timers->level[l]->list[(i+off) % PER_LEVEL];
 		if (!timer_list_check(h, timers->base + i, timers->base + i,
-				      timers->first, abortstr))
+				      timers->firsts[l], abortstr))
 			return NULL;
 	}
 
 	/* For other levels, "current" bucket has been emptied, and may contain
 	 * entries for the current + level_size bucket. */
-	for (l = 1; timers->level[l] && l < PER_LEVEL; l++) {
+	for (l = 1; l < ARRAY_SIZE(timers->level) && timers->level[l]; l++) {
 		uint64_t per_bucket = 1ULL << (TIMER_LEVEL_BITS * l);
 
 		off = ((timers->base >> (l*TIMER_LEVEL_BITS)) % PER_LEVEL);
@@ -373,7 +399,7 @@ struct timers *timers_check(const struct timers *timers, const char *abortstr)
 
 			h = &timers->level[l]->list[(i+off) % PER_LEVEL];
 			if (!timer_list_check(h, base, base + per_bucket - 1,
-					      timers->first, abortstr))
+					      timers->firsts[l], abortstr))
 				return NULL;
 			base += per_bucket;
 		}
@@ -382,7 +408,8 @@ struct timers *timers_check(const struct timers *timers, const char *abortstr)
 past_levels:
 	base = (timers->base & ~((1ULL << (TIMER_LEVEL_BITS * l)) - 1))
 		+ (1ULL << (TIMER_LEVEL_BITS * l)) - 1;
-	if (!timer_list_check(&timers->far, base, -1ULL, timers->first,
+	if (!timer_list_check(&timers->far, base, -1ULL,
+			      timers->firsts[ARRAY_SIZE(timers->level)],
 			      abortstr))
 		return NULL;
 
@@ -390,50 +417,84 @@ past_levels:
 }
 
 #ifdef CCAN_TIMER_DEBUG
-void timers_dump(const struct timers *timers, FILE *fp)
+static void dump_bucket_stats(FILE *fp, const struct list_head *h)
 {
-	unsigned int l, i;
-	uint64_t min, max, num;
+	unsigned long long min, max, num;
 	struct timer *t;
 
-	if (!fp)
-		fp = stderr;
-
-	fprintf(fp, "Base: %llu\n", timers->base);
-
-	for (l = 0; timers->level[l] && l < ARRAY_SIZE(timers->level); l++) {
-		fprintf(fp, "Level %i (+%llu):\n",
-			l, (uint64_t)1 << (TIMER_LEVEL_BITS * l));
-		for (i = 0; i < (1 << TIMER_LEVEL_BITS); i++) {
-
-			if (list_empty(&timers->level[l]->list[i]))
-				continue;
-			min = -1ULL;
-			max = 0;
-			num = 0;
-			list_for_each(&timers->level[l]->list[i], t, list) {
-				if (t->time < min)
-					min = t->time;
-				if (t->time > max)
-					max = t->time;
-				num++;
-			}
-			fprintf(stderr, "  %llu (+%llu-+%llu)\n",
-				num, min - timers->base, max - timers->base);
-		}
+	if (list_empty(h)) {
+		printf("\n");
+		return;
 	}
 
 	min = -1ULL;
 	max = 0;
 	num = 0;
-	list_for_each(&timers->far, t, list) {
+	list_for_each(h, t, list) {
 		if (t->time < min)
 			min = t->time;
 		if (t->time > max)
 			max = t->time;
 		num++;
 	}
-	fprintf(stderr, "Far: %llu (%llu-%llu)\n", num, min, max);
+	fprintf(fp, " %llu (%llu-%llu)\n",
+		num, min, max);
+}
+
+void timers_dump(const struct timers *timers, FILE *fp)
+{
+	unsigned int l, i, off;
+	unsigned long long base;
+
+	if (!fp)
+		fp = stderr;
+
+	fprintf(fp, "Base: %llu\n", (unsigned long long)timers->base);
+
+	if (!timers->level[0])
+		goto past_levels;
+
+	fprintf(fp, "Level 0:\n");
+
+	/* First level is simple. */
+	off = timers->base % PER_LEVEL;
+	for (i = 0; i < PER_LEVEL; i++) {
+		const struct list_head *h;
+
+		fprintf(fp, "  Bucket %llu (%lu):",
+			(i+off) % PER_LEVEL, timers->base + i);
+		h = &timers->level[0]->list[(i+off) % PER_LEVEL];
+		dump_bucket_stats(fp, h);
+	}
+
+	/* For other levels, "current" bucket has been emptied, and may contain
+	 * entries for the current + level_size bucket. */
+	for (l = 1; l < ARRAY_SIZE(timers->level) && timers->level[l]; l++) {
+		uint64_t per_bucket = 1ULL << (TIMER_LEVEL_BITS * l);
+
+		off = ((timers->base >> (l*TIMER_LEVEL_BITS)) % PER_LEVEL);
+		/* We start at *next* bucket. */
+		base = (timers->base & ~(per_bucket - 1)) + per_bucket;
+
+		fprintf(fp, "Level %u:\n", l);
+		for (i = 1; i <= PER_LEVEL; i++) {
+			const struct list_head *h;
+
+			fprintf(fp, "  Bucket %llu (%llu - %llu):",
+				(i+off) % PER_LEVEL,
+				base, base + per_bucket - 1);
+
+			h = &timers->level[l]->list[(i+off) % PER_LEVEL];
+			dump_bucket_stats(fp, h);
+			base += per_bucket;
+		}
+	}
+
+past_levels:
+	if (!list_empty(&timers->far)) {
+		fprintf(fp, "Far timers:");
+		dump_bucket_stats(fp, &timers->far);
+	}
 }
 #endif
 
