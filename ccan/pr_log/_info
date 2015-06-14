@@ -23,7 +23,7 @@
  *	}
  *
  * License: LGPL (v2.1 or any later version)
- * Author: Cody P Schafer <devel@codyps.com>
+ * Author: Cody P Schafer <dev@codyps.com>
  */
 int main(int argc, char *argv[])
 {

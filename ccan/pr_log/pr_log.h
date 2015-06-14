@@ -9,14 +9,14 @@
 # define CCAN_PR_LOG_DEFAULT_LEVEL 0
 #endif
 
-#define LOG_EMERG "-4:"
-#define LOG_ALERT "-3:"
-#define LOG_CRIT  "-2:"
-#define LOG_ERROR "-1:"
-#define LOG_WARN   "0:"
-#define LOG_NOTICE "1:"
-#define LOG_INFO   "2:"
-#define LOG_DEBUG  "3:"
+#define LOG_EMERG  "<0>"
+#define LOG_ALERT  "<1>"
+#define LOG_CRIT   "<2>"
+#define LOG_ERROR  "<3>"
+#define LOG_WARN   "<4>"
+#define LOG_NOTICE "<5>"
+#define LOG_INFO   "<6>"
+#define LOG_DEBUG  "<7>"
 
 #ifndef CCAN_PR_LOG_DISABLE
 /**
