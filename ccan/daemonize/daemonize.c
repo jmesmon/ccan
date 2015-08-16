@@ -15,8 +15,9 @@ bool daemonize(void)
 	/* Separate from our parent via fork, so init inherits us. */
 	if ((pid = fork()) < 0)
 		return false;
+	/* use _exit() to avoid triggering atexit() processing */
 	if (pid != 0)
-		exit(0);
+		_exit(0);
 
 	/* Don't hold files open. */
 	close(STDIN_FILENO);
@@ -32,7 +33,8 @@ bool daemonize(void)
 	close(0);
 
 	/* Session leader so ^C doesn't whack us. */
-	setsid();
+	if (setsid() == (pid_t)-1)
+	        return false;
 	/* Move off any mount points we might be in. */
 	if (chdir("/") != 0)
 		return false;

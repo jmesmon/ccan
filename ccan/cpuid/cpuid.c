@@ -37,7 +37,7 @@ enum {
 };
 
 #ifndef _MSC_VER
-static void ___cpuid(cpuid_t info, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
+static void get_cpuid(cpuid_t info, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
 {
 	__asm__(
 		"xchg %%ebx, %%edi\n\t" 	/* 32bit PIC: Don't clobber ebx.  */
@@ -50,7 +50,7 @@ static void ___cpuid(cpuid_t info, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, 
 #else
 #include <intrin.h>
 
-static void ___cpuid(cpuid_t info, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
+static void get_cpuid(cpuid_t info, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
 {
 	uint32_t registers[4];
 	__cpuid(registers, info);
@@ -215,7 +215,7 @@ static uint32_t fetch_edx(uint32_t what)
 		static uint32_t REGISTER; \
 		if (REGISTER == 0) \
 			REGISTER = fetch_##REGISTER(TYPE); \
-		return (REGISTER & feature) == feature; \
+		return !!(REGISTER & feature); \
 	}
 
 DEFINE_FEATURE_FUNC(ecxfeature, ecx, CPUID_PROCINFO_AND_FEATUREBITS)
@@ -225,25 +225,6 @@ DEFINE_FEATURE_FUNC(ecxfeature_ext, ecx, CPUID_EXTENDED_PROC_INFO_FEATURE_BITS)
 DEFINE_FEATURE_FUNC(edxfeature_ext, edx, CPUID_EXTENDED_PROC_INFO_FEATURE_BITS)
 
 #undef DEFINE_FEATURE_FUNC
-
-static const char *const cpuids[] = {
-	"Nooooooooone",
-	"AMDisbetter!",
-	"AuthenticAMD",
-	"CentaurHauls",
-	"CyrixInstead",
-	"GenuineIntel",
-	"TransmetaCPU",
-	"GeniuneTMx86",
-	"Geode by NSC",
-	"NexGenDriven",
-	"RiseRiseRise",
-	"SiS SiS SiS ",
-	"UMC UMC UMC ",
-	"VIA VIA VIA ",
-	"Vortex86 SoC",
-	"KVMKVMKVMKVM"
-};
 
 cputype_t cpuid_get_cpu_type(void)
 {
@@ -255,9 +236,9 @@ cputype_t cpuid_get_cpu_type(void)
 		} u;
 		uint32_t i;
 
-		___cpuid(CPUID_VENDORID, &i, &u.bufu32[0], &u.bufu32[2], &u.bufu32[1]);
-		for (i = 0; i < sizeof(cpuids) / sizeof(cpuids[0]); ++i) {
-			if (strncmp(cpuids[i], u.buf, 12) == 0) {
+		get_cpuid(CPUID_VENDORID, &i, &u.bufu32[0], &u.bufu32[2], &u.bufu32[1]);
+		for (i = 0; i < sizeof(c_cpunames) / sizeof(c_cpunames); ++i) {
+			if (strncmp(c_cpunames[i], u.buf, 12) == 0) {
 				cputype = (cputype_t)i;
 				break;
 			}
@@ -265,16 +246,6 @@ cputype_t cpuid_get_cpu_type(void)
 	}
 
 	return cputype;
-}
-
-bool cpuid_sprintf_cputype(const cputype_t cputype, char *buf)
-{
-	if (cputype == CT_NONE)
-		return false;
-
-	memcpy(buf, cpuids[(int)cputype], 12);
-	buf[12] = '\0';
-	return true;
 }
 
 uint32_t cpuid_highest_ext_func_supported(void)
@@ -300,36 +271,36 @@ uint32_t cpuid_highest_ext_func_supported(void)
 	return highest;
 }
 
-void cpuid(cpuid_t info, uint32_t *buf)
+void cpuid(cpuid_t request, uint32_t *buf)
 {
 	/* Sanity checks, make sure we're not trying to do something
 	 * invalid or we are trying to get information that isn't supported
 	 * by the CPU.  */
-	if (info > CPUID_VIRT_PHYS_ADDR_SIZES || (info > CPUID_HIGHEST_EXTENDED_FUNCTION_SUPPORTED
-		&& !cpuid_test_feature(info)))
+	if (request > CPUID_VIRT_PHYS_ADDR_SIZES || (request > CPUID_HIGHEST_EXTENDED_FUNCTION_SUPPORTED
+		&& !cpuid_test_feature(request)))
 		return;
 
-	if (info == CPUID_PROC_BRAND_STRING) {
+	if (request == CPUID_PROC_BRAND_STRING) {
 		static char cached[48] = { 0 };
 		if (cached[0] == '\0') {
-			___cpuid(CPUID_PROC_BRAND_STRING,	    &buf[0], &buf[1], &buf[2],  &buf[3] );
-			___cpuid(CPUID_PROC_BRAND_STRING_INTERNAL0, &buf[4], &buf[5], &buf[6],  &buf[7] );
-			___cpuid(CPUID_PROC_BRAND_STRING_INTERNAL1, &buf[8], &buf[9], &buf[10], &buf[11]);
+			get_cpuid(CPUID_PROC_BRAND_STRING,	    &buf[0], &buf[1], &buf[2],  &buf[3] );
+			get_cpuid(CPUID_PROC_BRAND_STRING_INTERNAL0, &buf[4], &buf[5], &buf[6],  &buf[7] );
+			get_cpuid(CPUID_PROC_BRAND_STRING_INTERNAL1, &buf[8], &buf[9], &buf[10], &buf[11]);
 
 			memcpy(cached, buf, sizeof cached);
 		} else
 			buf = (uint32_t *)cached;
 
 		return;
-	} else if (info == CPUID_HIGHEST_EXTENDED_FUNCTION_SUPPORTED) {
+	} else if (request == CPUID_HIGHEST_EXTENDED_FUNCTION_SUPPORTED) {
 		*buf = cpuid_highest_ext_func_supported();
 		return;
 	}
 
 	uint32_t eax, ebx, ecx, edx;
-	___cpuid(info, &eax, &ebx, &ecx, &edx);
+	get_cpuid(request, &eax, &ebx, &ecx, &edx);
 
-	switch (info) {
+	switch (request) {
 		case CPUID_VENDORID:
 			buf[0] = ebx;
 			buf[1] = edx;
@@ -397,32 +368,12 @@ void cpuid(cpuid_t info, uint32_t *buf)
 	}
 }
 
-bool cpuid_write_info(uint32_t info, uint32_t featureset, const char *outfile)
+bool cpuid_write_info(uint32_t info, uint32_t featureset, FILE *file)
 {
-	FILE *file;
-	char filename[256];
-	char cpu_information[64];
-
-	if (!cpuid_sprintf_cputype(cpuid_get_cpu_type(), cpu_information))
-		return false;
-
 	char brand[48];
 	cpuid(CPUID_PROC_BRAND_STRING, (uint32_t *)brand);
 
-	cpu_information[12] = '_';
-	memcpy(&cpu_information[13], brand, sizeof brand);
-
-	if (!outfile)
-		strncpy(filename, cpu_information, sizeof cpu_information);
-	else
-		strncpy(filename, outfile, sizeof filename);
-
-	file = fopen(filename, "w");
-	if (!file)
-		return false;
-
-	fprintf(file, "-- CPU Information for CPU: %s --\n\n", cpu_information);
-
+	fprintf(file, "-- CPU Information for: %s_%s --\n\n", cpuid_get_name(), brand);
 	if (info & CPUID_HIGHEST_EXTENDED_FUNCTION_SUPPORTED)
 		fprintf(file, "Highest extended function supported: %#010x\n\n", cpuid_highest_ext_func_supported());
 
@@ -704,7 +655,6 @@ bool cpuid_write_info(uint32_t info, uint32_t featureset, const char *outfile)
 	}
 #undef YON
 
-	fclose(file);
 	return true;
 }
 

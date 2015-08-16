@@ -29,7 +29,9 @@ MODS_NO_SRC := alignof \
 	version
 
 # No external dependencies, with C code:
-MODS_WITH_SRC := antithread \
+MODS_WITH_SRC := aga \
+	agar \
+	antithread \
 	antithread/alloc \
 	asort \
 	asprintf \
@@ -49,6 +51,7 @@ MODS_WITH_SRC := antithread \
 	crc \
 	crcsync \
 	cpuid \
+	crypto/ripemd160 \
 	crypto/sha256 \
 	crypto/shachain \
 	daemonize \
@@ -87,6 +90,7 @@ MODS_WITH_SRC := antithread \
 	ntdb \
 	ogg_to_pcm \
 	opt \
+	order \
 	pr_log \
 	ptrint \
 	ptr_valid \

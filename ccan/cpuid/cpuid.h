@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Ahmed Samy  <f.fallen45@gmail.com>
+ * Copyright (c) 2013, 2015 Ahmed Samy  <f.fallen45@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /**
  * enum cpuid - stuff to get information about from the CPU.
@@ -230,6 +231,25 @@ typedef enum cputype {
 	CT_KVM
 } cputype_t;
 
+static char const *const c_cpunames[] = {
+	"Nooooooooone",
+	"AMDisbetter!",
+	"AuthenticAMD",
+	"CentaurHauls",
+	"CyrixInstead",
+	"GenuineIntel",
+	"TransmetaCPU",
+	"GeniuneTMx86",
+	"Geode by NSC",
+	"NexGenDriven",
+	"RiseRiseRise",
+	"SiS SiS SiS ",
+	"UMC UMC UMC ",
+	"VIA VIA VIA ",
+	"Vortex86 SoC",
+	"KVMKVMKVMKVM"
+};
+
 #if defined(__i386__) || defined(__i386) || defined(__x86_64) \
 	|| defined(_M_AMD64) || defined(__M_X64)
 
@@ -238,19 +258,24 @@ typedef enum cputype {
  *
  * Returns the CPU Type as cputype_t.
  *
- * See also: cpuid_get_cpu_type_string()
+ * See also: cpuid_get_name()
  */
-#define is_intel_cpu() 	cpuid_get_cpu_type() == CT_INTEL
-#define is_amd_cpu() 	cpuid_get_cpu_type() == CT_AMDK5 || cpuid_get_cpu_type() == CT_AMD
 cputype_t cpuid_get_cpu_type(void);
 
-/**
- * cpuid_sprintf_cputype - Get CPU Type string
- * @cputype: a char of atleast 12 bytes in it.
- *
- * Returns true on success, false on failure
- */
-bool cpuid_sprintf_cputype(const cputype_t cputype, char *buf);
+static inline bool cpuid_is_intel(void)
+{
+	return cpuid_get_cpu_type() == CT_INTEL;
+}
+
+static inline bool cpuid_is_amd(void)
+{
+	return cpuid_get_cpu_type() == CT_AMDK5 || cpuid_get_cpu_type() == CT_AMD;
+}
+
+static inline const char *cpuid_get_name(void)
+{
+	return c_cpunames[(int)cpuid_get_cpu_type()];
+}
 
 /**
  * cpuid_is_supported - test if the CPUID instruction is supported
@@ -281,6 +306,8 @@ uint32_t cpuid_highest_ext_func_supported(void);
 
 /**
  * cpuid - Get Some information from the CPU.
+ * @request: a cpuid_t
+ * @buf: output
  *
  * This function expects buf to be a valid pointer to a string/int/...
  * depending on the requested information.
@@ -339,28 +366,25 @@ uint32_t cpuid_highest_ext_func_supported(void);
  * For CPUID_PROC_BRAND_STRING:
  * 	Have a char array with at least 48 bytes assigned to it.
  *
- * If an invalid flag has been passed a 0xbaadf00d is returned in *buf.
+ * If an invalid request has been passed a 0xbaadf00d is returned in *buf.
  */
-void cpuid(cpuid_t info, uint32_t *buf);
+void cpuid(cpuid_t request, uint32_t *buf);
 
 /**
  * cpuid_write_info - Write specified CPU information to a file.
  * @info: Bit set of information to write.
  * @featureset: Bit set of features to write.
- * @outfile: Output filename (Max 256).
- *
- * If @outfile is NULL, a name is choosen in the following format:
- * 	CPUVENDOR_PROCESSORBRAND.cpuid
+ * @outfile: Output file pointer
  *
  * Returns true on success, false otherwise.
  *
  * Example usage:
  * 	if (!cpuid_write_info(CPUID_VENDORID | CPUID_PROC_BRAND_STRING,
  * 				CPUID_FEAT_ECX_SSE3 | CPUID_FEAT_EDX_FPU,
- * 				"cpuinfo.cpuid"))
+ * 				fp))
  * 		... error ...
  */
-bool cpuid_write_info(uint32_t info, uint32_t featureset, const char *outfile);
+bool cpuid_write_info(uint32_t info, uint32_t featureset, FILE *outfile);
 
 /**
  * cpuid_test_feature - Test if @feature is available
@@ -381,7 +405,6 @@ bool cpuid_test_feature(cpuid_t feature);
  * 	cpuid_has_edxfeature.
  * See the enum for more information.
  *
- *
  * Returns true if the feature is available, false otherwise.
  */
 bool cpuid_has_ecxfeature(int feature);
@@ -396,7 +419,7 @@ bool cpuid_has_edxfeature(int feature);
  * 	cpuid_has_edxfeature_ext.
  * See the enum for more information.
  *
- * Test if the CPU supports this feature.
+ * Test if the CPU supports this extfeature.
  * Returns true on success, false otherwise.
  */
 bool cpuid_has_ecxfeature_ext(int extfeature);
@@ -406,10 +429,12 @@ bool cpuid_has_edxfeature_ext(int extfeature);
 #include <ccan/build_assert/build_assert.h>
 
 #define cpuid_get_cpu_type() 				BUILD_ASSERT_OR_ZERO(0)
-#define cpuid_get_cpu_type_string() 			BUILD_ASSERT_OR_ZERO(0)
+#define cpuid_is_intel()				BUILD_ASSERT_OR_ZERO(0)
+#define cpuid_is_amd()					BUILD_ASSERT_OR_ZERO(0)
+#define cpuid_get_name()				BUILD_ASSERT_OR_ZERO(0)
 
 #define cpuid_is_supported() 				BUILD_ASSERT_OR_ZERO(0)
-#define cpuid(info, buf) 				BUILD_ASSERT_OR_ZERO(0)
+#define cpuid(request, buf) 				BUILD_ASSERT_OR_ZERO(0)
 #define cpuid_write_info(info, featureset, outfile)	BUILD_ASSERT_OR_ZERO(0)
 
 #define cpuid_highest_ext_func_supported() 		BUILD_ASSERT_OR_ZERO(0)
