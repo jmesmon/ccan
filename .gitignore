@@ -5,7 +5,9 @@ TAGS
 *.o
 libccan.a
 config.h
+config-suffix-string.h
 *~
+tools/as_string_lit
 tools/ccan_depends
 tools/doc_extract
 tools/namespacize

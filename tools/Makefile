@@ -40,7 +40,12 @@ tools/namespacize: tools/namespacize.o $(DEP_OBJS)
 
 tools/namespacize.o tools/depends.o: tools/tools.h
 
-tools/configurator/configurator: tools/configurator/configurator.c
+tools/configurator/configurator: tools/configurator/configurator.c | config-suffix-string.h
+
+config-suffix-string.h: tools/as_string_lit tools/configurator/config-suffix.h
+	./tools/as_string_lit < tools/configurator/config-suffix.h > config-suffix-string.h
+
+tools/as_string_lit: tools/as_string_lit.c
 
 tools/modfiles: tools/modfiles.o tools/manifest.o $(DEP_OBJS)
 

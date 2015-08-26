@@ -609,6 +609,11 @@ int main(int argc, const char *argv[])
 	printf("#define HAVE_CCAN 1\n");
 	for (i = 0; i < sizeof(tests)/sizeof(tests[0]); i++)
 		printf("#define %s %u\n", tests[i].name, tests[i].answer);
+
+	puts(
+#include "config-suffix-string.h"
+	);
+
 	printf("#endif /* CCAN_CONFIG_H */\n");
 	return 0;
 }
