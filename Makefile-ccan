@@ -19,6 +19,7 @@ MODS_NO_SRC := alignof \
 	container_of \
 	darray \
 	endian \
+	inline \
 	lqueue \
 	lstack \
 	minmax \
