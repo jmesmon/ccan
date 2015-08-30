@@ -1,0 +1,44 @@
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+
+/**
+ * inline - simple wrappers to support variations of 'inline'
+ *
+ * While most compilers support 'static inline', the support of 'extern inline'
+ * + 'inline' is a bit less complete. This module is a single header providing
+ * a set of macros for using 'extern inline' + 'inline' where avaliable (and in
+ * the style supported by the compiler) while falling back to 'static inline'
+ * where not possible.
+ *
+ * It should also be possible to extend this to allow fallbacks to normal
+ * functions (assuming one is willing to type a bit more).
+ *
+ * Example:
+ *
+ *	#include <ccan/inline/inline.h>
+ *	INLINE_DECL(int a_inline_func(int b)) {
+ *		return (b << 2) - 1;
+ *	}
+ *
+ *	INLINE_DEFN(int a_inline_func(int));
+ *
+ *	int main(int argc, char *argv[]) {
+ *		(void)argv;
+ *		return a_inline_func(argc);
+ *	}
+ *
+ * License: CC0
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		return 0;
+	}
+
+	return 1;
+}
