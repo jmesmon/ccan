@@ -5,7 +5,8 @@
 #include "config.h"
 
 /**
- * INLINE_DECL - prefix on inline declarations
+ * INLINE_FUNC - prefix on inline declarations, placed where the body of the
+ *               function is.
  *
  * Put this in the header file that would normally contain the body of the
  * inline function, and follow it with a signature & function body.
@@ -17,13 +18,14 @@
  *
  * Example:
  *	#include <ccan/inline/inline.h>
- *	INLINE_DECL(int do_something(int a)) {
+ *	INLINE_FUNC(int do_something(int a)) {
  *		return a * 2;
  *	}
  */
 
 /**
- * INLINE_DEFN - prefix on inline definitions
+ * INLINE_SYM - prefix on inline definitions, placed where the symbol will be
+ *              emitted
  *
  * Put this in the source file that would normally contain the symbol for the
  * function. Follow it with the function signature.
@@ -32,18 +34,26 @@
  * a re-definition of a static inline function, which should be mostly ignored
  *
  * Example:
- *	INLINE_DEFN(int do_something(int));
+ *	INLINE_SYM(int do_something(int));
  */
 #if HAVE_GNU_INLINE
-# define INLINE_DECL(sig) extern inline sig; extern inline sig
-# define INLINE_DEFN(sig) inline sig
+# define INLINE_FUNC(sig) extern inline sig; extern inline sig
+# define INLINE_SYM(sig) inline sig
 #elif HAVE_STD_INLINE
-# define INLINE_DECL(sig) inline sig
-# define INLINE_DEFN(sig) extern inline sig
+# define INLINE_FUNC(sig) inline sig
+# define INLINE_SYM(sig) extern inline sig
 #else
 /* do some fallback magic */
-# define INLINE_DECL(sig) static inline sig
-# define INLINE_DEFN(sig) static inline sig
+# define INLINE_FUNC(sig) static inline sig
+# define INLINE_SYM(sig) static inline sig
+#endif
+
+#if HAVE_GNU_INLINE
+#warning "inline: GNU"
+#endif
+
+#if HAVE_STD_INLINE
+#warning "inline: STD"
 #endif
 
 #endif
