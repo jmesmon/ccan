@@ -21,7 +21,9 @@ static void _bheap_check_depth(struct bheap_node *n, int c, int depth, int d_sz,
 	_bheap_check_depth(n->d[1], c + 1, depth, h_sz, r_idx);
 }
 
-static inline void bheap_check_depth(struct bheap *b)
+#define bheap_check_depth(bh_) \
+	bheap_check_depth_(tcon_unwrap(bh_))
+static inline void bheap_check_depth_(struct bheap_ *b)
 {
 	/* max depth, min = @depth - 1 */
 	int depth = b->sz ? bheap_depth(b->sz) : 0;

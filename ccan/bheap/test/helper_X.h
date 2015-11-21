@@ -1,6 +1,7 @@
 #include <ccan/container_of/container_of.h>
 #include <ccan/bheap/bheap.h>
 #include <ccan/compiler/compiler.h>
+#include <ccan/order/order.h>
 
 #include <stdio.h>
 
@@ -11,13 +12,9 @@ struct X {
 
 #define bhn_to_X(b) container_of(b, struct X, bhn)
 
-static UNNEEDED
-int X_ord(const struct bheap_node *a, const struct bheap_node *b)
-{
-	const struct X *A = container_of(a, struct X, bhn), *B = container_of(b, struct X, bhn);
-
-	return A->v - B->v;
-}
+#define X_BHEAP(name_) \
+	total_order_by_field(name_##__X_ord, int, struct X, v); \
+	BHEAP(struct X, bhn) name_ = BHEAP_INIT(&name_, name_##__X_ord.cb, name_##__X_ord.ctx)
 
 static UNNEEDED
 int X_to_string(struct bheap_node *b, char *str, size_t l)

@@ -27,7 +27,7 @@ static void poison_node(struct bheap_node *b, int i)
 
 static void do_test(int len)
 {
-	struct bheap bh = BHEAP_INIT(X_ord);
+	X_BHEAP(bh);
 	struct X x[len], xc[len];
 	size_t i;
 	int min = INT_MAX;
@@ -40,9 +40,9 @@ static void do_test(int len)
 		}
 
 
-		bheap_push(&bh, &x[i].bhn);
+		bheap_push(&bh, &x[i]);
 
-		struct X *n = container_of(bh.top, struct X, bhn);
+		struct X *n = container_of(tcon_unwrap(&bh)->top, struct X, bhn);
 		assert(n->v == min);
 
 		bheap_check_depth(&bh);
@@ -54,10 +54,9 @@ static void do_test(int len)
 
 	int max = INT_MIN;
 	for (i = 0; i < ARRAY_SIZE(x); i++) {
-		struct bheap_node *b = bheap_pop(&bh);
-		assert(b);
-		struct X *f = container_of(b, struct X, bhn);
-		struct X *next = container_of(bh.top, struct X, bhn);
+		struct X *f = bheap_pop(&bh);
+		assert(f);
+		struct X *next = bheap_peek(&bh);
 		if (max < f->v) {
 			max = f->v;
 		}

@@ -76,7 +76,7 @@ typedef struct bheap_node bhn;
  *     / \       log2(N) = 1.098  |
  *    +   +			  +
  *
- * N=4  + D=3 log2(N+1) = 2.321   +(0, points into the struct bheap)
+ * N=4  + D=3 log2(N+1) = 2.321   +(0, points into the struct bheap_)
  *     / \    log2(N) = 1.386	  |
  *    +   +			  +(1)
  *   /				  |
@@ -126,13 +126,6 @@ typedef struct bheap_node bhn;
  * 0 1 23 45 6 7
  *
  */
-
-void bheap_init(struct bheap *b, bheap_ordering_fn ord)
-{
-	*b = (typeof(*b)) {
-		.ord = ord
-	};
-}
 
 /*
  * swap_node_with_parent - Swap a and b, where a is higher in the tree and is
@@ -228,6 +221,12 @@ static void swap_node_up(struct bheap_node *c, struct bheap_node **parent_stack,
 	poison_parent(parent_stack + depth, depth);
 }
 
+static int bheap_ord(struct _total_order order, size_t offset,
+		struct bheap_node *a, struct bheap_node *b)
+{
+	return total_order_cmp(order, a - offset, b - offset);
+}
+
 /* bubble_up - move 'c' up the heap whose parent_stack is given
  * @ord: the ordering function for this heap
  * @c  : the node to "bubble up" the heap based on ord()
@@ -236,19 +235,19 @@ static void swap_node_up(struct bheap_node *c, struct bheap_node **parent_stack,
  *
  * NOTE: this does not update the parent_stack with the changes made
  */
-static void bubble_up(bheap_ordering_fn ord, struct bheap_node *c,
+static void bubble_up(struct _total_order order, size_t offset, struct bheap_node *c,
 		struct bheap_node **parent_stack, int depth)
 {
 	int d;
 	for (d = depth - 1; d; d--) {
 		/* c >= it's parent */
-		if (ord(c, parent_stack[d]) >= 0)
+		if (bheap_ord(order, offset, c, parent_stack[d]) >= 0)
 			break;
 		swap_node_up(c, parent_stack, d);
 	}
 }
 
-void bheap_push(struct bheap *b, struct bheap_node *new_node)
+void bheap_push_(struct bheap_ *b, struct bheap_node *new_node, size_t offset)
 {
 	/* the depth where the new node (+1) will be inserted */
 	int future_tree_depth = bheap_depth(b->sz + 1);
@@ -266,7 +265,7 @@ void bheap_push(struct bheap *b, struct bheap_node *new_node)
 	 *
 	 * This relys on code checking ->d[0] first, and not checking ->d[1]
 	 * unless that fails (For parent_stack[0], ->d[1] actually looks at the
-	 * fields in struct bheap that follow ->top. */
+	 * fields in struct bheap_ that follow ->top. */
 	parent_stack[0] = &((union bheap_union *)&b->top)->node;
 
 	/* the number of nodes in the last row.
@@ -300,7 +299,7 @@ void bheap_push(struct bheap *b, struct bheap_node *new_node)
 	b->sz++;
 
 	/* bubble up new_node as needed */
-	bubble_up(b->ord, new_node, parent_stack, future_tree_depth);
+	bubble_up(b->order, offset, new_node, parent_stack, future_tree_depth);
 }
 
 /*
@@ -342,7 +341,7 @@ void bheap_push(struct bheap *b, struct bheap_node *new_node)
  *
  */
 
-static void push_down(struct bheap *bh)
+static void push_down(struct bheap_ *bh, size_t offset)
 {
 	bhn **parent_slot = &bh->top;
 
@@ -362,7 +361,7 @@ static void push_down(struct bheap *bh)
 			/* check if ord(parent, child) > 0 "parent > child" */
 			/* if so, swap and continue to left */
 
-			if (bh->ord(c, c->d[0]) > 0)
+			if (bheap_ord(bh->order, offset, c, c->d[0]) > 0)
 				parent_slot = swap_node_with_parent(c,
 						c->d[0], parent_slot);
 			else
@@ -371,8 +370,8 @@ static void push_down(struct bheap *bh)
 			/* case 3: neither child is null */
 			/* establish the ordering amoung the 3 nodes */
 
-			bool p_gt_l = bh->ord(c, c->d[0]) > 0;
-			bool p_gt_r = bh->ord(c, c->d[1]) > 0;
+			bool p_gt_l = bheap_ord(bh->order, offset, c, c->d[0]) > 0;
+			bool p_gt_r = bheap_ord(bh->order, offset, c, c->d[1]) > 0;
 			/* promote the smallest one and continue down that leaf. */
 			/* if no promotion occurs, we are done */
 			if (!p_gt_l) {
@@ -386,7 +385,7 @@ static void push_down(struct bheap *bh)
 					parent_slot = swap_node_with_parent(c,
 							c->d[0], parent_slot);
 				else {
-					bool l_gt_r = bh->ord(c->d[0], c->d[1]) > 0;
+					bool l_gt_r = bheap_ord(bh->order, offset, c->d[0], c->d[1]) > 0;
 					parent_slot = swap_node_with_parent(c,
 							c->d[l_gt_r], parent_slot);
 				}
@@ -395,7 +394,7 @@ static void push_down(struct bheap *bh)
 	}
 }
 
-static inline struct bheap_node **bheap_get_last_node_slot(struct bheap *bh)
+static inline struct bheap_node **bheap_get_last_node_slot(struct bheap_ *bh)
 {
 	if (!bh->sz)
 		return NULL;
@@ -432,7 +431,7 @@ static inline struct bheap_node **bheap_get_last_node_slot(struct bheap *bh)
 	return c;
 }
 
-struct bheap_node *bheap_pop(struct bheap *bh)
+struct bheap_node *bheap_pop_(struct bheap_ *bh, size_t offset)
 {
 	bhn **c = bheap_get_last_node_slot(bh);
 	if (!c)
@@ -453,7 +452,7 @@ struct bheap_node *bheap_pop(struct bheap *bh)
 	bh->top = last;
 	*last = *top;
 
-	push_down(bh);
+	push_down(bh, offset);
 
 	return top;
 }

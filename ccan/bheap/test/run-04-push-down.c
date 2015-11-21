@@ -45,12 +45,12 @@
 
 
 #define ok_eq(n1, n2) oke(n1 == n2, "%p (%zd) == %p (%zd)", n1, n1 ? (bhn_to_X(n1) - z) : -1, n2, n2 ? (bhn_to_X(n2) - z) : -1)
-#define Z(x) z[x].bhn
+#define Z(x) z[x - 1].bhn
 
 
 static void do_it(void)
 {
-	struct X z[8];
+	struct X z[7];
 	size_t i;
 	for (i = 0; i < ARRAY_SIZE(z); i++)
 		z[i] = N(i);
@@ -71,15 +71,13 @@ static void do_it(void)
 			Z(3).d[0] = NULL;
 			Z(3).d[1] = NULL;
 
-	struct bheap b = {
-		.top = &Z(7),
-		.sz = 7,
-		.ord = X_ord
-	};
+	X_BHEAP(b);
+	tcon_unwrap(&b)->top = &Z(7);
+	tcon_unwrap(&b)->sz = ARRAY_SIZE(z);
 
-	push_down(&b);
+	push_down(tcon_unwrap(&b), tcon_offset((&b), canary));
 
-	ok_eq(b.top, &Z(1));
+	ok_eq(tcon_unwrap(&b)->top, &Z(1));
 	ok_eq(Z(1).d[0], &Z(2));
 		ok_eq(Z(2).d[0], &Z(4));
 			ok_eq(Z(4).d[0], NULL);

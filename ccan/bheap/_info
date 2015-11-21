@@ -25,28 +25,27 @@
  *		struct bheap_node n;
  *	};
  *
- *	static int ord_foo(const struct bheap_node *i,
- *                         const struct bheap_node *j)
+ *	static int ord_foo(const struct foo *i,
+ *                         const struct foo *j,
+ *			   void *ctx)
  *	{
- *		return container_of(i, struct foo, n)->i
- *		     - container_of(j, struct foo, n)->i;
+ *		return i->i - j->i;
  *	}
  *
  *	int main(void)
  *	{
- *		struct bheap h;
+ *		BHEAP(struct foo, n) h;
  *		struct foo arr[] = { {1}, {0}, {2} };
  *		int i;
  *
- *		bheap_init(&h, ord_foo);
+ *		bheap_init(&h, ord_foo, NULL);
  *
  *		for (i = 0; i < 3; i++)
- *			bheap_push(&h, &arr[i].n);
+ *			bheap_push(&h, &arr[i]);
  *
  *		// should print 0, 1, 2
  *		for (i = 0; i < 3; i++) {
- *			struct bheap_node *v = bheap_pop(&h);
- *			printf("%d\n", container_of(v, struct foo, n)->i);
+ *			printf("%d\n", bheap_pop(&h)->i);
  *		}
  *		return 0;
  *	}
@@ -63,6 +62,8 @@ int main(int argc, char *argv[])
 	if (strcmp(argv[1], "depends") == 0) {
 		printf("ccan/compiler\n");
 		printf("ccan/ilog\n");
+		printf("ccan/order\n");
+		printf("ccan/tcon\n");
 		return 0;
 	}
 
