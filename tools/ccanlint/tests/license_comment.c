@@ -10,6 +10,30 @@
 #include <stdio.h>
 #include <err.h>
 #include <ccan/str/str.h>
+#include <ccan/tal/str/str.h>
+
+/**
+ * line_has_license_flavour - returns true if line contains a <flavour> license
+ * @line: line to look for license in
+ * @shortname: license to find
+ * @note ("LGPLv2.0","LGPL") returns true
+ * @note ("LGPLv2.0","GPL") returns false
+ */
+static bool line_has_license_flavour(const char *line, const char *shortname)
+{
+	char **toks = tal_strsplit(NULL, line, " \t-:", STR_NO_EMPTY);
+	size_t i;
+	bool ret = false;
+
+	for (i = 0; toks[i] != NULL; i++) {
+		if (strstarts(toks[i], shortname)) {
+			ret = true;
+			break;
+		}
+	}
+	tal_free(toks);
+	return ret;
+}
 
 static void check_license_comment(struct manifest *m,
 				  unsigned int *timeleft, struct score *score)
@@ -38,8 +62,8 @@ static void check_license_comment(struct manifest *m,
 					break;
 				if (strstr(lines[i], "LICENSE"))
 					found_license = true;
-				if (strstr(lines[i],
-					   licenses[m->license].shortname))
+				if (line_has_license_flavour(lines[i],
+							     licenses[m->license].shortname))
 					found_flavor = true;
 			}
 			if ((!found_license || !found_flavor)
