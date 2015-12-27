@@ -1,0 +1,47 @@
+#include "config.h"
+#include <string.h>
+
+/**
+ * rb - an intrusive red-black tree
+ *
+ * Usage is similar to the rbtree used in the linux kernel.
+ *
+ * Operations, where n is the number of items in the tree:
+ * find:    O(lg(n))
+ * insert:  O(1) + find
+ * delete:  O(1)
+ * replace: O(1)
+ *
+ * Example:
+ *	#include <stdio.h>
+ *
+ *	#include <ccan/rb/rb.h>
+ *	#include <ccan/container_of/container_of.h>
+ *
+ *	int main(void)
+ *	{
+ *		return 0;
+ *	}
+ *
+ * License: LGPL (v2.1 or any later version)
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	/* Expect exactly one argument */
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		puts("ccan/alignof");
+		puts("ccan/build_assert");
+		return 0;
+	}
+
+        if (strcmp(argv[1], "testdepends") == 0) {
+		puts("ccan/array_size");
+                return 0;
+        }
+
+	return 1;
+}
