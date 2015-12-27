@@ -92,6 +92,7 @@ MODS := a_star \
 	ptrint \
 	ptr_valid \
 	pushpull \
+	rb \
 	rbtree \
 	rbuf \
 	read_write_all \
