@@ -97,6 +97,7 @@ MODS_WITH_SRC := aga \
 	ptrint \
 	ptr_valid \
 	pushpull \
+	rb \
 	rbtree \
 	rbuf \
 	read_write_all \
