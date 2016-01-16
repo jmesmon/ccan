@@ -31,6 +31,7 @@ int main(void)
 	size_t j;
 	for (j = 0; j < ARRAY_SIZE(foo); j++) {
 		rb_remove(&coll, &foo[j].e);
+		X_print_tree("remove_1", &coll, stdout);
 		rb_assert(&coll);
 	}
 

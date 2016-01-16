@@ -225,6 +225,9 @@ static
 void
 rb_fixup_delete(struct rb_tree *rbt, struct rb_node *x)
 {
+	if (!x)
+		return;
+
 	while (rb_parent(x) && rb_is_black(x)) {
 		bool right = x == rb_parent(x)->c[0];
 
