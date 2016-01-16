@@ -137,16 +137,20 @@ rb_parent_color(struct rb_node *p, bool black)
 static inline void
 rb_replace(struct rb_tree *root, struct rb_node *victim, struct rb_node *repl)
 {
-	*repl = *victim;
-	struct rb_node *p = rb_parent(repl);
-	if (p)
+	assert(victim);
+
+	struct rb_node *p;
+	if (repl && ((p = rb_parent(repl))))
 		p->c[p->c[0] != victim] = repl;
 	else
 		root->top = repl;
-	if (repl->c[0])
-		rb_parent_set(repl->c[0], repl);
-	if (repl->c[1])
-		rb_parent_set(repl->c[1], repl);
+	if (repl) {
+		*repl = *victim;
+		if (repl->c[0])
+			rb_parent_set(repl->c[0], repl);
+		if (repl->c[1])
+			rb_parent_set(repl->c[1], repl);
+	}
 
 	rb_node_poison(victim, 0x1000);
 }
