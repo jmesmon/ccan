@@ -135,24 +135,22 @@ rb_parent_color(struct rb_node *p, bool black)
  * AKA: transplant
  */
 static inline void
-rb_replace(struct rb_tree *root, struct rb_node *victim, struct rb_node *repl)
+rb_replace(struct rb_tree *root, struct rb_node *u /* victim */, struct rb_node *v /* repl */)
 {
-	assert(victim);
+	assert(root);
+	assert(u);
 
-	struct rb_node *p;
-	if (repl && ((p = rb_parent(repl))))
-		p->c[p->c[0] != victim] = repl;
+	if (!rb_parent(u))
+		root->top = v;
+	else if (u == rb_parent(u)->c[0])
+		rb_parent(u)->c[0] = v;
 	else
-		root->top = repl;
-	if (repl) {
-		*repl = *victim;
-		if (repl->c[0])
-			rb_parent_set(repl->c[0], repl);
-		if (repl->c[1])
-			rb_parent_set(repl->c[1], repl);
-	}
+		rb_parent(u)->c[1] = v;
 
-	rb_node_poison(victim, 0x1000);
+	if (v)
+		rb_parent_set(v, rb_parent(u));
+
+	rb_node_poison(u, 0x1000);
 }
 
 /**
