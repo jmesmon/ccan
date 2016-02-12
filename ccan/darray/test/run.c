@@ -32,7 +32,6 @@ static void memtile(void *dest, size_t destWidth, const void *src, size_t srcWid
 int main(void) {
 	darray(long) arr = darray_new();
 	darray_char str = darray_new();
-	#define reset(arr) do {darray_free(arr); darray_init(arr);} while(0)
 	size_t i;
 	
 	trace("Generating amalgams (internal)");
@@ -50,7 +49,7 @@ int main(void) {
 		ok1(darray_alloc(arr) >= darray_size(arr));
 		ok1(!memcmp(arr.item, lotsOfNumbers, sizeof(lotsOfNumbers)));
 	}
-	reset(arr);
+	darray_reset(arr);
 	
 	testing(darray_prepend, darray_pop);
 	{
@@ -69,7 +68,7 @@ int main(void) {
 		ok1(i==0);
 		ok1(darray_size(arr) == 0);
 	}
-	reset(arr);
+	darray_reset(arr);
 	
 	testing(darray_from_c, darray_foreach, darray_foreach_reverse);
 	{
@@ -101,7 +100,7 @@ int main(void) {
 		};
 		ok1(j == ARRAY_SIZE(lotsOfNumbers));
 	}
-	reset(arr);
+	darray_reset(arr);
 	
 	testing(darray_append_string);
 	{
@@ -112,7 +111,7 @@ int main(void) {
 		ok1(str.item[str.size] == 0);
 		ok1(!strcmp(str.item, amalgams.stringsF));
 	}
-	reset(str);
+	darray_reset(str);
 	
 	testing(darray_prepend_string);
 	{
@@ -123,7 +122,7 @@ int main(void) {
 		ok1(str.item[str.size] == 0);
 		ok1(!strcmp(str.item, amalgams.stringsB));
 	}
-	reset(str);
+	darray_reset(str);
 	
 	testing(darray_from_string);
 	{
@@ -138,7 +137,7 @@ int main(void) {
 		}
 		ok1(i == ARRAY_SIZE(lotsOfStrings));
 	}
-	reset(str);
+	darray_reset(str);
 	
 	testing(darray_resize0);
 	{
@@ -159,7 +158,7 @@ int main(void) {
 		}
 		ok1(i == ARRAY_SIZE(lotsOfNumbers));
 	}
-	reset(arr);
+	darray_reset(arr);
 	
 	testing(darray_realloc);
 	{
@@ -181,7 +180,7 @@ int main(void) {
 		}
 		ok1(i == ARRAY_SIZE(lotsOfNumbers));
 	}
-	reset(arr);
+	darray_reset(arr);
 	
 	testing(darray_growalloc);
 	{
@@ -207,13 +206,14 @@ int main(void) {
 			
 			//clear the darray every now and then
 			if (!(lotsOfNumbers[i] & 15)) {
-				reset(arr);
+				darray_reset(arr);
 			}
 		}
 		ok1(i == ARRAY_SIZE(lotsOfNumbers));
 	}
-	reset(arr);
+	darray_reset(arr);
 	
+#if HAVE_STATEMENT_EXPR
 	testing(darray_make_room);
 	{
 		for (i=0; i < ARRAY_SIZE(lotsOfStrings); i++) {
@@ -232,7 +232,10 @@ int main(void) {
 		darray_append(str, 0);
 		ok1(!strcmp(str.item, amalgams.stringsF));
 	}
-	reset(str);
+	darray_reset(str);
+#else
+	skip(3, "Need HAVE_STATEMENT_EXPR to test darray_make_room");
+#endif
 	
 	testing(darray_appends, darray_prepends, darray_pop_check);
 	{
