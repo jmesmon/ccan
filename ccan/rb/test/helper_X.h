@@ -40,6 +40,17 @@ rb_is_leaf(struct rb_node *x)
 	return (!x->c[0]) && (!x->c[1]);
 }
 
+#define assert_eq_fmt(fmt, a, b) do { \
+	if ((a) != (b)) { \
+		fprintf(stderr, "%s:%d: %s: Assertion `"#a" == "#b"`, aka `%"fmt" == %"fmt"` failed.\n", \
+				__FILE__, __LINE__, __func__, a, b); \
+		abort(); \
+	} \
+} while(0)
+
+#define assert_eq_zu(a, b) assert_eq_fmt("zu", a, b)
+#define assert_eq_p(a, b) assert_eq_fmt("p", a, b)
+
 /* decends a tree with parent pointers and confirms the parent pointers are
  * correct */
 static void UNNEEDED
@@ -47,7 +58,7 @@ rb_assert_parents(struct rb_node *n, struct rb_node *parent)
 {
 	if (!n)
 		return;
-	assert(rb_parent(n) == parent);
+	assert_eq_p(rb_parent(n), parent);
 	rb_assert_parents(n->c[0], n);
 	rb_assert_parents(n->c[1], n);
 }
@@ -150,15 +161,15 @@ rb_assert_(struct rb_node *pos)
 	}
 
 	if (pos->c[0])
-		assert(rb_parent(pos->c[0]) == pos);
+		assert_eq_p(rb_parent(pos->c[0]), pos);
 	if (pos->c[1])
-		assert(rb_parent(pos->c[1]) == pos);
+		assert_eq_p(rb_parent(pos->c[1]), pos);
 
 	size_t l = rb_assert_(pos->c[0]),
 	       r = rb_assert_(pos->c[1]);
 
 	/* black depth must be equal */
-	assert(l == r);
+	assert_eq_zu(l, r);
 
 	return rb_is_black(pos) + l;
 }
@@ -169,6 +180,6 @@ rb_assert(struct rb_tree *rbt)
 {
 	assert(!rb_is_red(rbt->top));
 	if (rbt->top)
-		assert(rb_parent(rbt->top) == NULL);
+		assert_eq_p(rb_parent(rbt->top), NULL);
 	rb_assert_(rbt->top);
 }
