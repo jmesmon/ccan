@@ -223,68 +223,113 @@ rb_insert_ord(struct rb_tree *rbt, struct rb_node *z, rb_ord_t ord)
 
 static
 void
-rb_fixup_delete(struct rb_tree *rbt, struct rb_node *x)
+rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 {
-	if (!x)
-		return;
+	struct rb_node *tmp,
+		       *x = NULL;
+	assert(parent);
+	/* parent is never NULL except when we reach the root */
 
-	while (rb_parent(x) && rb_is_black(x)) {
-		bool right = x == rb_parent(x)->c[0];
+	for (;;) {
+		/* direction of the sibling ('w') to 'x' aka 'node' */
+		bool right = x == parent->c[0];
 
 		/* in the algorithm '.right' becomes '->c[right]',
 		 * '.left' becomes '->c[!right]'.
 		 */
 
-		struct rb_node *w = rb_parent(x)->c[right];
+		/* w is x's sibling */
+		struct rb_node *w = parent->c[right];
 		if (rb_is_red(w)) {
 			/* case 1 */
+			/*
+			 *   p
+			 *  / \
+			 * x   w
+			 *    / \
+			 *   b   g
+			 *
+			 *   to
+			 *
+			 *     w
+			 *    / \
+			 *   p   g
+			 *  / \
+			 * x   b
+			 */
+			tmp = w->c[!right];
 			rb_color_black(w);
-			rb_color_red(rb_parent(x));
-			rb_rotate(rbt, rb_parent(x), !right);
-			w = rb_parent(x)->c[right];
+			rb_color_red(parent);
+			rb_rotate(rbt, parent, !right);
+			/*
+			 * often, one will see:
+			 *   w = rb_parent(x)->c[right]
+			 * instead. The formulation here is eqivalent and does
+			 * not require that x is non-null.
+			 */
+			w = tmp;
 		}
 
 		if (rb_is_black(w->c[0]) && rb_is_black(w->c[1])) {
 			/* case 2 */
 			rb_color_red(w);
-			x = rb_parent(x);
+			x = parent;
+			parent = rb_parent(parent);
+			if (!parent)
+				return;
 		} else {
 			if (rb_is_black(w->c[right])) {
 				/* case 3 */
+				tmp = w->c[!right];
 				rb_color_black(w->c[!right]);
 				rb_color_red(w);
 				rb_rotate(rbt, w, right);
-				w = rb_parent(x)->c[right];
+				/*
+				 * A right rotation promotes the pivot's left
+				 * child.
+				 *
+				 * w = rb_parent(x)->c[right];
+				 */
+				w = tmp;
 			}
 
 			/* case 4 */
-			rb_color_copy(w, rb_parent(x));
-			rb_color_black(rb_parent(x));
+			rb_color_copy(w, parent);
+			rb_color_black(parent);
 			rb_color_black(w->c[right]);
-			rb_rotate(rbt, rb_parent(x), !right);
-			x = rbt->top;
+			rb_rotate(rbt, parent, !right);
+			/* x = rbt->top; */
+			rb_color_black(rbt->top);
+			return;
 		}
-	}
 
-	rb_color_black(x);
+		/* this also picks up if the parent is root, as it cannot be
+		 * NULL for any other reason. */
+		if (rb_is_black(parent))
+			return;
+	}
 }
 
 void
 rb_remove(struct rb_tree *rbt, struct rb_node *node)
 {
 	struct rb_node *y = node,
-		       *x;
+		       *x,
+		       *rebalance;
 	bool orig_black = rb_is_black(y);
 	if (!node->c[0]) {
 		x = node->c[1];
+		rebalance = rb_parent(node);
 		rb_replace(rbt, node, x);
 	} else if (!node->c[1]) {
 		x = node->c[0];
+		rebalance = rb_parent(node);
 		rb_replace(rbt, node, x);
 	} else {
 		y = rb_minimum(node->c[1]);
 		orig_black = rb_is_black(y);
 		x = y->c[1];
+		rebalance = y;
 		if (rb_parent(y) == node)
 			rb_parent_set(y, node);
 		else {
@@ -300,7 +345,7 @@ rb_remove(struct rb_tree *rbt, struct rb_node *node)
 	}
 
 	if (orig_black)
-		rb_fixup_delete(rbt, x);
+		rb_fixup_delete(rbt, rebalance);
 }
 
 /* iteration */

@@ -29,9 +29,11 @@ int main(void)
 	/* check if we hit all the nodes */
 
 	size_t j;
+	char name[256];
 	for (j = 0; j < ARRAY_SIZE(foo); j++) {
 		rb_remove(&coll, &foo[j].e);
-		X_print_tree("remove_1", &coll, stdout);
+		sprintf(name, "remove_%s", foo[j].v);
+		X_print_tree(name, &coll, stdout);
 		rb_assert(&coll);
 	}
 
