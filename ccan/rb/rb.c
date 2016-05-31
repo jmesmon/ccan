@@ -1,4 +1,12 @@
 /* GNU LGPL version 2 (or later) - see LICENSE file for details */
+
+/*
+ * CLRS
+ *
+ * CLR
+ *
+ * http://cs.wellesley.edu/~cs231/fall01/red-black.pdf
+ */
 #include <ccan/rb/rb.h>
 
 #include <assert.h>
@@ -277,6 +285,9 @@ rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 			parent = rb_parent(parent);
 			if (!parent)
 				return;
+
+			if (rb_is_black(x))
+				return;
 		} else {
 			if (rb_is_black(w->c[right])) {
 				/* case 3 */
@@ -302,20 +313,156 @@ rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 			rb_color_black(rbt->top);
 			return;
 		}
-
-		/* this also picks up if the parent is root, as it cannot be
-		 * NULL for any other reason. */
-		if (rb_is_black(parent))
-			return;
 	}
 }
 
+/*
+TREE SUCCESSOR(x)
+1  if right[x] != NIL
+2      then return TREE-MINIMUM(right[x])
+3  y <- p[x]
+4  while y != NIL and x = right[y]
+5       do x <- y
+6          y <- p[y]
+7  return y
+*/
+static struct rb_node *
+tree_sucessor(struct rb_node *node)
+{
+	if (node->c[1])
+		return rb_minimum(node->c[1]);
+	struct rb_node *y = rb_parent(node);
+	while (y && node == y->c[1]) {
+		node = y;
+		y = rb_parent(y);
+	}
+	return y;
+}
+
+/*
+RB-DELETE (T, z)
+1  if left[z] = nil[T] or right[z] = nil[T]
+2       then y <- z
+3       else y <- TREE-SUCCESSOR(z)
+4  if left[y] != nil[T]     
+5      then x <- left[y]
+6      else x <- right[y]
+7  p[x] <- p[y]
+8  if p[y] = nil[T]
+9     then root[T] <- x
+10    else if y = left[p[y]]
+11            then left[p[y]] <- x
+12            else right[p[y]] <- x
+13 if y != z
+14     then key[z] <- key[y]
+15          :> If y has other fields, copy them, too.
+16 if color[y] = BLACK
+17     then RB-DELETE-FIXUP (T,x)
+18 return y
+ */
+#if 0
+static struct rb_node *
+tree_remove(struct rb_tree *rbt, struct rb_node *node)
+{
+	struct rb_node *y;
+	if (!node->c[0] || !node->c[1]) {
+		y = node;
+	} else {
+		y = tree_sucessor(node);
+	}
+
+	struct rb_node *x;
+	if (y->c[0]) {
+		x = y->c[0];	
+	} else {
+		x = y->c[1];
+	}
+
+	struct rb_node *yp = rb_parent(y);
+	if (x)
+		rb_parent_set(x, yp);
+	if (!yp) {
+		rbt->top = x;
+	} else {
+		if (y == yp->c[0]) {
+			yp->c[0] = x;
+		} else {
+			yp->c[1] = x;
+		}
+	}
+
+	if (y != node) {
+		/*
+		 * In the algorithm, they replace contents of z (node) with y.
+		 * We need to actually remove 
+		 */
+	}
+
+	return (rb_is_black(y)) ? rb_fixup_delete(rbt, node) : NULL;
+}
+#endif
+
+static struct rb_node *
+tree_remove(struct rb_tree *rbt, struct rb_node *node)
+{
+	struct rb_node *rebalance;
+	struct rb_node *np = rb_parent(node);
+	struct rb_node *repl;
+	bool node_dir = np->c[0] != node;
+	/* if z has no children, we modify it's parent p[z] to replace z with
+	 * NIL as it's child */
+	if (!node->c[0] && !node->c[1]) {
+		np->c[node_dir] = NULL;
+		rebalance = np;
+		rb_node_poison(node, 0x10);
+	} else if (node->c[0] && !node->c[1]) {
+		repl = node->c[0];
+		np->c[node_dir] = repl;
+		/* XXX: consider if copying color here is right */
+		repl->parent_and_color = node->parent_and_color;
+		rebalance = np;
+		rb_node_poison(node, 0x20);
+	} else if (node->c[1] && !node->c[0]) {
+		repl = node->c[1];
+		np->c[node_dir] = repl;
+		/* XXX: consider if copying color here is right */
+		repl->parent_and_color = node->parent_and_color;
+		rebalance = np;
+		rb_node_poison(node, 0x30);
+	} else {
+		/* splice out z's successor y, which has no left child and
+		 * replace z's key & satellite data with y's key and satellite
+		 * data */
+		repl = rb_minimum(node->c[1]);
+		struct rb_node *rc = node->c[1];
+		rebalance = rb_parent(repl);
+		*repl = *node;
+		rebalance->c[0] = rc;
+		rb_parent_set(rc, rebalance);
+		/* XXX: consider if 'rc' (rebalance child) should be the
+		 * rebalance point instead */
+		rb_node_poison(node, 0x40);
+	}
+
+	return rb_is_black(repl) ? rebalance : NULL;
+}
+
+void
+rb_remove(struct rb_tree *rbt, struct rb_node *node)
+{
+	struct rb_node *rebalance = tree_remove(rbt, node);
+	if (rebalance)
+		rb_fixup_delete(rbt, rebalance);
+}
+
+#if 0
 void
 rb_remove(struct rb_tree *rbt, struct rb_node *node)
 {
 	struct rb_node *y = node,
 		       *x,
 		       *rebalance;
+
 	bool orig_black = rb_is_black(y);
 	if (!node->c[0]) {
 		x = node->c[1];
@@ -347,6 +494,7 @@ rb_remove(struct rb_tree *rbt, struct rb_node *node)
 	if (orig_black)
 		rb_fixup_delete(rbt, rebalance);
 }
+#endif
 
 /* iteration */
 
