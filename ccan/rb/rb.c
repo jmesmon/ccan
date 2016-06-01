@@ -285,9 +285,6 @@ rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 			parent = rb_parent(parent);
 			if (!parent)
 				return;
-
-			if (rb_is_black(x))
-				return;
 		} else {
 			if (rb_is_black(w->c[right])) {
 				/* case 3 */
@@ -409,6 +406,7 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 	struct rb_node *np = rb_parent(node);
 	struct rb_node *repl;
 	bool node_dir = np->c[0] != node;
+	bool remove_black = rb_is_black(node);
 	/* if z has no children, we modify it's parent p[z] to replace z with
 	 * NIL as it's child */
 	if (!node->c[0] && !node->c[1]) {
@@ -444,7 +442,7 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 		rb_node_poison(node, 0x40);
 	}
 
-	return rb_is_black(repl) ? rebalance : NULL;
+	return remove_black ? rebalance : NULL;
 }
 
 void
