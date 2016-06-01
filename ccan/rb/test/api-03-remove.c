@@ -20,6 +20,7 @@ int main(void)
 	size_t i;
 	for (i = 0; i < ARRAY_SIZE(foo); i++) {
 		rb_insert_ord(&coll, &foo[i].e, X_cmp_elem);
+		rb_assert_tree(&coll);
 		X_print_tree("inserted_1", &coll, stdout);
 		rb_assert(&coll);
 	}
@@ -33,6 +34,7 @@ int main(void)
 	for (j = 0; j < ARRAY_SIZE(foo); j++) {
 		rb_remove(&coll, &foo[j].e);
 		sprintf(name, "remove_%s", foo[j].v);
+		rb_assert_tree(&coll);
 		X_print_tree(name, &coll, stdout);
 		rb_assert(&coll);
 	}

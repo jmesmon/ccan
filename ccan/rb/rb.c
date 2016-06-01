@@ -238,7 +238,7 @@ rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 	assert(parent);
 	/* parent is never NULL except when we reach the root */
 
-	for (;;) {
+	while (rb_is_black(x)) {
 		/* direction of the sibling ('w') to 'x' aka 'node' */
 		bool right = x == parent->c[0];
 
@@ -323,6 +323,7 @@ TREE SUCCESSOR(x)
 6          y <- p[y]
 7  return y
 */
+#if 0
 static struct rb_node *
 tree_sucessor(struct rb_node *node)
 {
@@ -335,6 +336,7 @@ tree_sucessor(struct rb_node *node)
 	}
 	return y;
 }
+#endif
 
 /*
 RB-DELETE (T, z)
@@ -407,16 +409,23 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 	struct rb_node *repl;
 	bool node_dir = np->c[0] != node;
 	bool remove_black = rb_is_black(node);
-	/* if z has no children, we modify it's parent p[z] to replace z with
-	 * NIL as it's child */
+	
 	if (!node->c[0] && !node->c[1]) {
-		np->c[node_dir] = NULL;
+		/* if z has no children, we modify it's parent p[z] to replace z with
+		 * NIL as it's child */
+		if (np)
+			np->c[node_dir] = NULL;
+		else
+			rbt->top = NULL;
 		rebalance = np;
 		rb_node_poison(node, 0x10);
 	} else if (node->c[0] && !node->c[1]) {
 		repl = node->c[0];
-		np->c[node_dir] = repl;
-		/* XXX: consider if copying color here is right */
+		if (np)
+			np->c[node_dir] = repl;
+			/* XXX: consider if copying color here is right */
+		else
+			rbt->top = repl;
 		repl->parent_and_color = node->parent_and_color;
 		rebalance = np;
 		rb_node_poison(node, 0x20);

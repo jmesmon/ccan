@@ -63,6 +63,11 @@ rb_assert_parents(struct rb_node *n, struct rb_node *parent)
 	rb_assert_parents(n->c[1], n);
 }
 
+static void UNNEEDED
+rb_assert_tree(struct rb_tree *rbt)
+{
+	rb_assert_parents(rbt->top, NULL);
+}
 
 /* tap helpers */
 #define ok_eq(a, b) ok_eq_(__func__, __FILE__, __LINE__, false, a, #a, b, #b)
@@ -77,40 +82,28 @@ void ok_eq_(const char *func, const char *file, unsigned line, bool inv, const c
 }
 
 static UNNEEDED
-void X_print_tree_h(struct rb_node *n, struct rb_node *parent, FILE *stream)
-{
-	if (!n)
-		return;
-
-	struct X *v = elem_to_X(n);
-
-	if (parent) {
-		struct X *p = elem_to_X(parent);
-		fprintf(stream,"%s [color=\"%s\"];"
-			"\n%s -> %s;\n"
-			, v->v
-			, rb_is_red(n) ?"red":"black"
-			, p->v
-			, v->v);
-	} else {
-		fprintf(stream,"%s [color=\"%s\"];\n"
-			,v->v
-			,rb_is_red(n) ? "red" : "black");
-	}
-	X_print_tree_h(n->c[0],n,stream);
-	X_print_tree_h(n->c[1],n,stream);
-}
-
-static UNNEEDED
 void
 X_print_tree(const char *name, struct rb_tree *tr, FILE *f)
 {
 	fprintf(f, "digraph \"%s\"\n{\n", name);
-	X_print_tree_h(tr->top, 0, f);
+	struct rb_node *i;
+	for (i = rb_first(tr); i; i = rb_next(i)) {
+		struct X *it = elem_to_X(i);
+		fprintf(f, "%s [color=\"%s\"];\n",
+			it->v,
+			rb_is_red(i) ? "red" : "black");
+
+		unsigned j;
+		for (j = 0; j < 2; j++) {
+			if (i->c[j]) {
+				struct X *c = elem_to_X(i->c[j]);
+				fprintf(f, "%s -> %s;\n",
+						it->v, c->v);
+			}
+		}
+	}
 	fputc('}', f);
 }
-
-
 
 static UNNEEDED
 void
