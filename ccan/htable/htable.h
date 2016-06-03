@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <ccan/compiler/compiler.h>
 
 /**
  * struct htable - private definition of a htable.
@@ -109,6 +110,7 @@ size_t htable_rehash(const void *elem);
  * Also note that this can only fail due to allocation failure.  Otherwise, it
  * returns true.
  */
+WARN_UNUSED_RESULT
 bool htable_add(struct htable *ht, size_t hash, const void *p);
 
 /**
