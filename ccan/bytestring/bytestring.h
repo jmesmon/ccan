@@ -12,6 +12,7 @@
 #include <ccan/array_size/array_size.h>
 #include <ccan/mem/mem.h>
 #include <ccan/compiler/compiler.h>
+#include <sys/uio.h>
 
 struct bytestring {
 	const char *ptr;
@@ -365,7 +366,16 @@ struct bytestring bytestring_splitstr_next(struct bytestring whole,
 
 /**
  * BYTESTRING_EXP - expand a bytestring to a list of arguments for BYTESTRING_FMT
+ *
+ * @b: a bytestring
  */
 #define BYTESTRING_EXP(b) ((int)(b).len), ((b).ptr)
+
+/**
+ * bytestring_iovec - return a iovec with the bytestring
+ *
+ * @b: a bytestring
+ */
+#define bytestring_iovec(b) ((struct iovec){ .iov_base = (char *)(b).ptr, .iov_len = (b).len })
 
 #endif /* CCAN_BYTESTRING_H_ */
