@@ -115,6 +115,19 @@ static inline struct bytestring bytestring_dup(struct bytestring b)
 	return bytestring(memdup(b.ptr, b.len), b.len);
 }
 
+/*
+ * bytestring_free - free the memory backing a bytestring, assuming it was
+ *                   allocated with malloc()
+ * @b: an existing bytestring
+ *
+ * Example:
+ *	bytestring_free(bytestring_dup(BYTESTRING("hi")));
+ */
+static inline void bytestring_free(struct bytestring b)
+{
+	free((char *)b.ptr);
+}
+
 /**
  * bytestring_eq - test if bytestrings have identical content
  * @a, @b: bytestrings
