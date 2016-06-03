@@ -345,4 +345,14 @@ struct bytestring bytestring_splitstr_next(struct bytestring whole,
 	     (_s).ptr;					       \
 	     (_s) = bytestring_splitstr_next((_w), (_delim), (_s)))
 
+/**
+ * BYTESTRING_FMT - a printf format string for bytestring
+ */
+#define BYTESTRING_FMT "%.*s"
+
+/**
+ * BYTESTRING_EXP - expand a bytestring to a list of arguments for BYTESTRING_FMT
+ */
+#define BYTESTRING_EXP(b) ((int)(b).len), ((b).ptr)
+
 #endif /* CCAN_BYTESTRING_H_ */

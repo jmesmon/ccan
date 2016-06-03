@@ -230,7 +230,8 @@ int main(void)
 		ok1(bs7.ptr && !bs7.len);
 	}
 	ok1(n == 3);
-	
+
+	diag("A bytestring: " BYTESTRING_FMT "\n", BYTESTRING_EXP(BYTESTRING("hi")));
 	/* This exits depending on whether all tests passed */
 	return exit_status();
 }
