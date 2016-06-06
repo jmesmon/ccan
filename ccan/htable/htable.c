@@ -103,7 +103,7 @@ bool htable_copy(struct htable *dst, const struct htable *src)
 
 static size_t hash_bucket(const struct htable *ht, size_t h)
 {
-	return h & ((1 << ht->bits)-1);
+	return h & (((size_t)1 << ht->bits)-1);
 }
 
 static void *htable_val(const struct htable *ht,
