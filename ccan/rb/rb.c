@@ -407,14 +407,13 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 	struct rb_node *rebalance;
 	struct rb_node *np = rb_parent(node);
 	struct rb_node *repl;
-	bool node_dir = np->c[0] != node;
 	bool remove_black = rb_is_black(node);
 	
 	if (!node->c[0] && !node->c[1]) {
 		/* if z has no children, we modify it's parent p[z] to replace z with
 		 * NIL as it's child */
 		if (np)
-			np->c[node_dir] = NULL;
+			np->c[np->c[0] != node] = NULL;
 		else
 			rbt->top = NULL;
 		rebalance = np;
@@ -422,7 +421,7 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 	} else if (node->c[0] && !node->c[1]) {
 		repl = node->c[0];
 		if (np)
-			np->c[node_dir] = repl;
+			np->c[np->c[0] != node] = repl;
 			/* XXX: consider if copying color here is right */
 		else
 			rbt->top = repl;
@@ -431,7 +430,10 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 		rb_node_poison(node, 0x20);
 	} else if (node->c[1] && !node->c[0]) {
 		repl = node->c[1];
-		np->c[node_dir] = repl;
+		if (np)
+			np->c[np->c[0] != node] = repl;
+		else
+			rbt->top = repl;
 		/* XXX: consider if copying color here is right */
 		repl->parent_and_color = node->parent_and_color;
 		rebalance = np;
@@ -441,11 +443,13 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 		 * replace z's key & satellite data with y's key and satellite
 		 * data */
 		repl = rb_minimum(node->c[1]);
-		struct rb_node *rc = node->c[1];
+		struct rb_node *rc = repl->c[1];
 		rebalance = rb_parent(repl);
+		rebalance->c[rebalance->c[0] != repl] = rc;
+		if (rc)
+			rc->parent_and_color = repl->parent_and_color;
+
 		*repl = *node;
-		rebalance->c[0] = rc;
-		rb_parent_set(rc, rebalance);
 		/* XXX: consider if 'rc' (rebalance child) should be the
 		 * rebalance point instead */
 		rb_node_poison(node, 0x40);
@@ -508,7 +512,10 @@ rb_remove(struct rb_tree *rbt, struct rb_node *node)
 struct rb_node *
 rb_first(const struct rb_tree *rbt)
 {
-	return rb_minimum(rbt->top);
+	if (rbt->top)
+		return rb_minimum(rbt->top);
+	else
+		return NULL;
 }
 
 struct rb_node *

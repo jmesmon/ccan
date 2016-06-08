@@ -2,6 +2,8 @@
 #include <ccan/array_size/array_size.h>
 #include <ccan/tap/tap.h>
 
+#include <ccan/rb/rb.c>
+
 #include <string.h>
 
 #include "helper_X.h"
@@ -36,7 +38,6 @@ int main(void)
 		sprintf(name, "remove_%s", foo[j].v);
 		rb_assert_tree(&coll);
 		X_print_tree(name, &coll, stdout);
-		rb_assert(&coll);
 	}
 
 	rb_assert(&coll);
