@@ -126,6 +126,7 @@ MODS := a_star \
 	tlist2 \
 	ttxml \
 	typesafe_cb \
+	vec \
 	version \
 	wwviaudio \
 	xstring
