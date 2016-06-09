@@ -1,0 +1,62 @@
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+
+/**
+ * vec - a auto-resizing vector with type safety
+ *
+ * Can contain any sized object (not just pointers). Allocation errors are
+ * propogated.
+ *
+ * Current limitations:
+ *  - removal not supported
+ *  - insertion at arbitrary location not supported
+ *
+ * Compared to `darray`:
+ *  - vec indicates allocation errors via return values
+ *  - type information is seperated from raw structure via tcon
+ *
+ * Example:
+ *	#include <err.h>
+ *	#include <stdio.h>
+ *	#include <stdlib.h>
+ *	#include <ccan/vec/vec.h>
+ *
+ *	int main(int argc, char *argv[])
+ *	{
+ *		VEC(char *) args = VEC_INIT;
+ *
+ *		int i;
+ *		for (i = 2; i < argc; i++) {
+ *			vec_append(&args, argv[i]);
+ *		}
+ *
+ *		printf("stored %zu args\n", vec_len(&args));
+ *		char *j, **p;
+ *		vec_for_each_val(&args, j, p) {
+ *			printf("arg: %s\n", j);
+ *		}
+ *
+ *		vec_drop(&args);
+ *		return 0;
+ *	}
+ *
+ * License: LGPL
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		printf("ccan/compiler\n");
+		printf("ccan/tcon\n");
+		return 0;
+	} else if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/array_size\n");
+		return 0;
+	}
+
+	return 1;
+}
