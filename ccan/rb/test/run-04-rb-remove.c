@@ -35,7 +35,7 @@ int main(void)
 	size_t j;
 	char name[256];
 	for (j = 0; j < ARRAY_SIZE(foo); j++) {
-		tree_remove(&coll, &foo[j].e);
+		rb_remove(&coll, &foo[j].e);
 		sprintf(name, "remove_%s", foo[j].v);
 		rb_assert_tree(&coll);
 		X_print_tree(name, &coll, stdout);
@@ -44,6 +44,7 @@ int main(void)
 			struct X *t = elem_to_X(x);
 			assert_ne_s(t->v, foo[j].v);
 		}
+		rb_assert(&coll);
 	}
 
 	rb_assert(&coll);

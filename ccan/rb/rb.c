@@ -313,94 +313,6 @@ rb_fixup_delete(struct rb_tree *rbt, struct rb_node *parent)
 	}
 }
 
-/*
-TREE SUCCESSOR(x)
-1  if right[x] != NIL
-2      then return TREE-MINIMUM(right[x])
-3  y <- p[x]
-4  while y != NIL and x = right[y]
-5       do x <- y
-6          y <- p[y]
-7  return y
-*/
-#if 0
-static struct rb_node *
-tree_sucessor(struct rb_node *node)
-{
-	if (node->c[1])
-		return rb_minimum(node->c[1]);
-	struct rb_node *y = rb_parent(node);
-	while (y && node == y->c[1]) {
-		node = y;
-		y = rb_parent(y);
-	}
-	return y;
-}
-#endif
-
-/*
-RB-DELETE (T, z)
-1  if left[z] = nil[T] or right[z] = nil[T]
-2       then y <- z
-3       else y <- TREE-SUCCESSOR(z)
-4  if left[y] != nil[T]     
-5      then x <- left[y]
-6      else x <- right[y]
-7  p[x] <- p[y]
-8  if p[y] = nil[T]
-9     then root[T] <- x
-10    else if y = left[p[y]]
-11            then left[p[y]] <- x
-12            else right[p[y]] <- x
-13 if y != z
-14     then key[z] <- key[y]
-15          :> If y has other fields, copy them, too.
-16 if color[y] = BLACK
-17     then RB-DELETE-FIXUP (T,x)
-18 return y
- */
-#if 0
-static struct rb_node *
-tree_remove(struct rb_tree *rbt, struct rb_node *node)
-{
-	struct rb_node *y;
-	if (!node->c[0] || !node->c[1]) {
-		y = node;
-	} else {
-		y = tree_sucessor(node);
-	}
-
-	struct rb_node *x;
-	if (y->c[0]) {
-		x = y->c[0];	
-	} else {
-		x = y->c[1];
-	}
-
-	struct rb_node *yp = rb_parent(y);
-	if (x)
-		rb_parent_set(x, yp);
-	if (!yp) {
-		rbt->top = x;
-	} else {
-		if (y == yp->c[0]) {
-			yp->c[0] = x;
-		} else {
-			yp->c[1] = x;
-		}
-	}
-
-	if (y != node) {
-		/*
-		 * In the algorithm, they replace contents of z (node) with y.
-		 * We need to actually remove 
-		 */
-	}
-
-	return (rb_is_black(y)) ? rb_fixup_delete(rbt, node) : NULL;
-}
-#endif
-
 static struct rb_node *
 tree_remove(struct rb_tree *rbt, struct rb_node *node)
 {
@@ -443,15 +355,35 @@ tree_remove(struct rb_tree *rbt, struct rb_node *node)
 		 * replace z's key & satellite data with y's key and satellite
 		 * data */
 		repl = rb_minimum(node->c[1]);
+		remove_black = rb_is_black(repl);
 		struct rb_node *rc = repl->c[1];
 		rebalance = rb_parent(repl);
-		rebalance->c[rebalance->c[0] != repl] = rc;
+		bool repl_dir = rebalance->c[0] != repl;
+		bool node_dir = np->c[0] != node;
+
+		/*
+		 * keep in mind that `node` may equal `rebalance` (repl's parent).
+		 * remove `repl` before inserting it into `node`'s posision to
+		 * avoid problems when repl is node's child
+		 */
 		if (rc)
 			rc->parent_and_color = repl->parent_and_color;
+		rebalance->c[repl_dir] = rc;
+
+		if (rebalance == node)
+			rebalance = repl;
 
 		*repl = *node;
-		/* XXX: consider if 'rc' (rebalance child) should be the
-		 * rebalance point instead */
+		if (np)
+			np->c[node_dir] = repl;
+		else
+			rbt->top = repl;
+		if (repl->c[0])
+			rb_parent_set(repl->c[0], repl);
+		if (repl->c[1])
+			rb_parent_set(repl->c[1], repl);
+
+
 		rb_node_poison(node, 0x40);
 	}
 
