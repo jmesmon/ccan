@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdint.h>
 
 struct vec_ {
 	void *data;
@@ -34,7 +35,7 @@ struct vec_ {
  * Example:
  *	VEC(char *) strings = VEC_INIT;
  */
-#define VEC_INIT TCON_WRAP_INIT({ NULL, 0, 0})
+#define VEC_INIT TCON_WRAP_INIT({NULL, 0, 0})
 
 /**
  * vec_init - initialize an already declared vec
@@ -56,7 +57,9 @@ static inline int vec_ensure_space_(struct vec_ *v, size_t e_sz)
 		return 0;
 
 	size_t nc = v->capacity * 2;
-	if (nc == v->capacity)
+	/* TODO: consider if growing by only powers-of-2 would be useful. If
+	 * so, round up here */
+	if (nc < e_sz)
 		nc += e_sz;
 	void *nd = realloc(v->data, nc);
 	if (!nd)
@@ -64,6 +67,13 @@ static inline int vec_ensure_space_(struct vec_ *v, size_t e_sz)
 	v->data = nd;
 	v->capacity = nc;
 	return 1;
+}
+
+static inline int vec_ensure_space_n_(struct vec_ *v, size_t elem_ct, size_t elem_sz)
+{
+	if (SIZE_MAX / elem_ct <= elem_sz)
+		return -1;
+	return vec_ensure_space_(v, elem_ct * elem_sz);
 }
 
 /**
@@ -87,6 +97,29 @@ static inline void *vec_append_space_(struct vec_ *v, size_t e_sz)
 	void *l = (char *)v->data + v->used;
 	v->used += e_sz;
 	return l;
+}
+
+/**
+ * vec_append_space_n - return a pointer to N slots in the vec to populate
+ * @vec: &VEC(...): the vector
+ * @n: size_t: number of elements to make space for
+ *
+ * Returns NULL on failure.
+ * Can only fail due to memory exaustion.
+ *
+ * Example:
+ *	int *spaces = vec_append_space_n(&nums, 3);
+ *	spaces[0] = 2;
+ *	spaces[1] = 5;
+ *	spaces[2] = 4;
+ */
+#define vec_append_space_n(vec, n) (tcon_cast_ptr((vec), elem, vec_append_space_n_(tcon_unwrap(vec), (n), tcon_sizeof((vec), elem))))
+WARN_UNUSED_RESULT
+static inline void *vec_append_space_n_(struct vec_ *v, size_t elem_ct, size_t elem_sz)
+{
+	if (SIZE_MAX / elem_ct <= elem_sz)
+		return NULL;
+	return vec_append_space_(v, elem_ct * elem_sz);
 }
 
 /**

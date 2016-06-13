@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 		return 0;
 	} else if (strcmp(argv[1], "testdepends") == 0) {
 		printf("ccan/array_size\n");
+		printf("ccan/str\n");
 		return 0;
 	}
 
