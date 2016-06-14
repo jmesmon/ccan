@@ -32,7 +32,7 @@ static const char *can_run(struct manifest *m)
 			   "valgrind -q true")) {
 		const char *sfile;
 
-		do_valgrind = true;
+		//do_valgrind = true;
 
 		/* Check for suppressions file for all of CCAN. */
 		sfile = path_join(m, ccan_dir, ".valgrind_suppressions");
