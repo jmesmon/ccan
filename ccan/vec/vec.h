@@ -59,7 +59,7 @@ static inline int vec_ensure_space_(struct vec_ *v, size_t e_sz)
 	size_t nc = v->capacity * 2;
 	/* TODO: consider if growing by only powers-of-2 would be useful. If
 	 * so, round up here */
-	if (nc < e_sz)
+	if ((nc - v->used) < e_sz)
 		nc += e_sz;
 	void *nd = realloc(v->data, nc);
 	if (!nd)
