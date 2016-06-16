@@ -25,7 +25,9 @@ WARN_UNUSED_RESULT
 static inline int vec_vprintf_(struct vec_ *vec, const char *fmt, va_list ap)
 {
     char n[1];
-    int ct = vsnprintf(n, sizeof(n), fmt, ap);
+    va_list lap;
+    va_copy(lap, ap);
+    int ct = vsnprintf(n, sizeof(n), fmt, lap);
     if (ct < 0)
         return ct;
 
@@ -56,7 +58,8 @@ static inline int vec_vprintf_(struct vec_ *vec, const char *fmt, va_list ap)
  * At the moment, can only fail if either memory allocation fails or snprintf
  * fails.
  */
-#define vec_printf(vec, ...) vec_printf_(tcon_unwrap(vec), __VA_ARGS__)
+#define vec_printf(vec, ...) vec_printf_(tcon_unwrap(tcon_check(vec, elem, (char)0)), __VA_ARGS__)
+PRINTF_FMT(2, 3)
 WARN_UNUSED_RESULT
 static inline int vec_printf_(struct vec_ *vec, const char *fmt, ...)
 {
