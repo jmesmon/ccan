@@ -59,7 +59,8 @@
  *		if (!eq || ((n->val = atoi(eq+1)) == 0 && !strcmp(eq+1, "0")))
  *			errx(1, "Usage: --alias=<name>=<value>");
  *		*eq = '\0';
- *		htable_add(ht, hash_string(n->name), n);
+ *		if(!htable_add(ht, hash_string(n->name), n))
+ *			abort();
  *	}
  *
  *	int main(int argc, char *argv[])
@@ -75,7 +76,8 @@
  *		// Create and populate hash table.
  *		htable_init(&ht, rehash, NULL);
  *		for (i = 0; i < (int)(sizeof(map)/sizeof(map[0])); i++)
- *			htable_add(&ht, hash_string(map[i].name), &map[i]);
+ *			if (!htable_add(&ht, hash_string(map[i].name), &map[i]))
+ *				abort();
  *
  *		// Add any aliases to the hash table.
  *		for (i = 1; i < argc; i++) {

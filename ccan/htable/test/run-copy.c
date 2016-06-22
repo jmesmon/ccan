@@ -22,7 +22,7 @@ int main(void)
 	struct htable ht, ht2;
 	uint64_t val[NUM_VALS], i;
 
-	plan_tests((NUM_VALS) * 3);
+	plan_tests((NUM_VALS) * 4);
 	for (i = 0; i < NUM_VALS; i++)
 		val[i] = i;
 
@@ -30,7 +30,7 @@ int main(void)
 	for (i = 0; i < NUM_VALS; i++) {
 		ok1(ht.max >= i);
 		ok1(ht.max <= i * 2);
-		htable_add(&ht, hash(&val[i], NULL), &val[i]);
+		ok1(htable_add(&ht, hash(&val[i], NULL), &val[i]));
 	}
 
 	htable_copy(&ht2, &ht);

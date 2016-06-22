@@ -33,7 +33,10 @@ static void add_vals(struct htable *ht,
 			fail("%llu already in hash", (long long)i);
 			return;
 		}
-		htable_add(ht, hash(&val[i], NULL), &val[i]);
+		if (!htable_add(ht, hash(&val[i], NULL), &val[i])) {
+			fail("%llu failed to add", (long long)i);
+			return;
+		}
 		if (htable_get(ht, hash(&i, NULL), objcmp, &i) != &val[i]) {
 			fail("%llu not added to hash", (long long)i);
 			return;
@@ -105,7 +108,7 @@ int main(void)
 	void *p;
 	struct htable_iter iter;
 
-	plan_tests(36);
+	plan_tests(40);
 	for (i = 0; i < NUM_VALS; i++)
 		val[i] = i;
 	dne = i;
@@ -166,8 +169,8 @@ int main(void)
 	ok1(!htable_get(&ht, hash(&val[0], NULL), objcmp, &val[0]));
 
 	/* Worst case, a "pointer" which doesn't have any matching bits. */
-	htable_add(&ht, 0, (void *)~(uintptr_t)&val[NUM_VALS-1]);
-	htable_add(&ht, hash(&val[NUM_VALS-1], NULL), &val[NUM_VALS-1]);
+	ok1(htable_add(&ht, 0, (void *)~(uintptr_t)&val[NUM_VALS-1]));
+	ok1(htable_add(&ht, hash(&val[NUM_VALS-1], NULL), &val[NUM_VALS-1]));
 	ok1(ht.common_mask == 0);
 	ok1(ht.common_bits == 0);
 	/* Get rid of bogus pointer before we trip over it! */
@@ -182,11 +185,11 @@ int main(void)
 
 	/* Corner cases: wipe out the perfect bit using bogus pointer. */
 	htable_clear(&ht);
-	htable_add(&ht, 0, (void *)((uintptr_t)&val[NUM_VALS-1]));
+	ok1(htable_add(&ht, 0, (void *)((uintptr_t)&val[NUM_VALS-1])));
 	ok1(ht.perfect_bit);
 	perfect_bit = ht.perfect_bit;
-	htable_add(&ht, 0, (void *)((uintptr_t)&val[NUM_VALS-1]
-				   | perfect_bit));
+	ok1(htable_add(&ht, 0, (void *)((uintptr_t)&val[NUM_VALS-1]
+				   | perfect_bit)));
 	ok1(ht.perfect_bit == 0);
 	htable_del(&ht, 0, (void *)((uintptr_t)&val[NUM_VALS-1] | perfect_bit));
 
