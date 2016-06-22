@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 	void *p;
 	struct htable_obj_iter iter;
 
-	plan_tests(29);
+	plan_tests(30);
 	for (i = 0; i < NUM_VALS; i++)
 		val[i].key = i;
 	dne = i;
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	ok1(!htable_obj_get(&ht, val[0].key));
 
 	/* Worst case, a "pointer" which doesn't have any matching bits. */
-	htable_add(&ht.raw, 0, (void *)~(uintptr_t)&val[NUM_VALS-1]);
+	ok1(htable_add(&ht.raw, 0, (void *)~(uintptr_t)&val[NUM_VALS-1]));
 	htable_obj_add(&ht, &val[NUM_VALS-1]);
 	ok1(ht.raw.common_mask == 0);
 	ok1(ht.raw.common_bits == 0);

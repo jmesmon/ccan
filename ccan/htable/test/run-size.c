@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	uint64_t val[NUM_VALS];
 	unsigned int i;
 
-	plan_tests((NUM_VALS) * 2);
+	plan_tests((NUM_VALS) * 3);
 	for (i = 0; i < NUM_VALS; i++)
 		val[i] = i;
 
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < NUM_VALS; i++) {
 		ok1(ht.max >= i);
 		ok1(ht.max <= i * 2);
-		htable_add(&ht, hash(&val[i], NULL), &val[i]);
+		ok1(htable_add(&ht, hash(&val[i], NULL), &val[i]));
 	}
 	htable_clear(&ht);
 

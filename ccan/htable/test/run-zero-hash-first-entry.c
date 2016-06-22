@@ -28,7 +28,7 @@ int main(void)
 	struct htable table;
 	struct data *d0, *d1;
 
-	plan_tests(6);
+	plan_tests(10);
 
 	d1 = malloc(sizeof(struct data));
 	d1->key = 1;
@@ -37,8 +37,8 @@ int main(void)
 
 	htable_init(&table, hash, NULL);
 
-	htable_add(&table, d0->key, d0);
-	htable_add(&table, d1->key, d1);
+	ok1(htable_add(&table, d0->key, d0));
+	ok1(htable_add(&table, d1->key, d1));
 
 	ok1(table.elems == 2);
 	ok1(htable_get(&table, 1, eq, &d1->key) == d1);
@@ -46,8 +46,8 @@ int main(void)
 	htable_clear(&table);
 
 	/* Now add in reverse order, should still be OK. */
-	htable_add(&table, d1->key, d1);
-	htable_add(&table, d0->key, d0);
+	ok1(htable_add(&table, d1->key, d1));
+	ok1(htable_add(&table, d0->key, d0));
 
 	ok1(table.elems == 2);
 	ok1(htable_get(&table, 1, eq, &d1->key) == d1);
