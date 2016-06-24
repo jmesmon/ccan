@@ -397,4 +397,15 @@ struct bytestring bytestring_rem(struct bytestring whole, struct bytestring prev
  */
 #define bytestring_iovec(b) ((struct iovec){ .iov_base = (char *)(b).ptr, .iov_len = (b).len })
 
+/**
+ * BYTESTRING_SRC - generate a stack-allocated null-terminated string from a given bytestring
+ * @name: name of the string buffer to define
+ * @b: bytestring
+ *
+ */
+#define BYTESTRING_STR(name, b) \
+	char name[(b).len + 1]; \
+	memcpy(name, (b).ptr, (b).len); \
+	name[(b).len] = '\0'
+
 #endif /* CCAN_BYTESTRING_H_ */
