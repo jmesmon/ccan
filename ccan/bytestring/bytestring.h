@@ -354,6 +354,25 @@ struct bytestring bytestring_splitstr_next(struct bytestring whole,
 					   struct bytestring delim,
 					   struct bytestring prev);
 
+/**
+ * bytestring_rem - return the remainder of a split byte string
+ * @whole: the whole byte string
+ * @prev: the bytestring that was split out of @whole
+ */
+static inline
+struct bytestring bytestring_rem(struct bytestring whole, struct bytestring prev)
+{
+	/* prev has to be a substring of whole */
+	assert(prev.ptr >= whole.ptr);
+
+	const char *prev_end = prev.ptr + prev.len;
+	const char *whole_end = whole.ptr + whole.len;
+	if (prev_end == whole_end)
+		return bytestring_NULL;
+
+	return bytestring(prev.ptr + prev.len, whole_end - prev_end);
+}
+
 #define bytestring_foreach_splitstr(_s, _w, _delim) \
 	for ((_s) = bytestring_splitstr_first((_w), (_delim)); \
 	     (_s).ptr;					       \
