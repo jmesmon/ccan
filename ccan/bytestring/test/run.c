@@ -17,7 +17,7 @@ int main(void)
 	int n;
 
 	/* This is how many tests you plan to run */
-	plan_tests(126);
+	plan_tests(128);
 
 	bs = bytestring(str1, sizeof(str1) - 1);
 	ok1(bs.ptr == str1);
@@ -230,6 +230,12 @@ int main(void)
 		ok1(bs7.ptr && !bs7.len);
 	}
 	ok1(n == 3);
+
+	bs1 = BYTESTRING("foobar");
+	bs2 = bytestring_slice(bs1, 0, 3);
+	bs3 = bytestring_rem(bs1, bs2);
+	ok1(bytestring_eq(bs2, BYTESTRING("foo")));
+	ok1(bytestring_eq(bs3, BYTESTRING("bar")));
 
 	diag("A bytestring: " BYTESTRING_FMT "\n", BYTESTRING_EXP(BYTESTRING("hi")));
 	/* This exits depending on whether all tests passed */
