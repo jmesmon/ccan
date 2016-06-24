@@ -33,6 +33,11 @@
 	{								\
 		return htable_copy(&dst->raw, &src->raw);		\
 	}								\
+	static inline UNNEEDED void name##_move(struct name *dst,	\
+						const struct name *src)	\
+	{								\
+		return htable_move(&dst->raw, &src->raw);		\
+	}								\
 	static inline bool name##_add(struct name *ht, const type *elem) \
 	{								\
 		return htable_add(&ht->raw, hashfn(keyof(elem)), elem);	\
@@ -129,6 +134,7 @@
  *	bool <name>_init_sized(struct <name> *, size_t);
  *	void <name>_clear(struct <name> *);
  *	bool <name>_copy(struct <name> *dst, const struct <name> *src);
+ *	void <name>_move(struct <name> *dst, const struct <name> *src);
  *
  * Add function only fails if we run out of memory:
  *	bool <name>_add(struct <name> *ht, const <type> *e);

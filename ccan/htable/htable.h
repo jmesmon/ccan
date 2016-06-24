@@ -95,6 +95,29 @@ void htable_clear(struct htable *ht);
 bool htable_copy(struct htable *dst, const struct htable *src);
 
 /**
+ * htable_move - move a hash table from one htable struct to another
+ * @dst: hash table to overwrite (don't initialize)
+ * @src: hash table to move data from
+ *
+ * Cannot fail.
+ *
+ * Similar in behavior to a htable_copy(dst, src) followed by a
+ * htable_clear(src), except:
+ *
+ *  - @src is not modified, but should not be used after htable_move() is called
+ *  - @dst uses the same allocated memory that @src previously owned.
+ *  - Much faster & more efficient
+ *
+ */
+static inline
+void htable_move(struct htable *dst, const struct htable *src)
+{
+	*dst = *src;
+	if (dst->table == &src->perfect_bit)
+		dst->table = &dst->perfect_bit;
+}
+
+/**
  * htable_rehash - use a hashtree's rehash function
  * @elem: the argument to rehash()
  *
