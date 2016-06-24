@@ -19,6 +19,7 @@
 	{								\
 		htable_init(&ht->raw, name##_hash, NULL);		\
 	}								\
+	WARN_UNUSED_RESULT						\
 	static inline UNNEEDED bool name##_init_sized(struct name *ht,	\
 						      size_t s)		\
 	{								\
@@ -28,6 +29,7 @@
 	{								\
 		htable_clear(&ht->raw);					\
 	}								\
+	WARN_UNUSED_RESULT						\
 	static inline UNNEEDED bool name##_copy(struct name *dst,	\
 						const struct name *src)	\
 	{								\
