@@ -22,7 +22,7 @@ int main(void)
 	struct htable ht, ht2;
 	uint64_t val[NUM_VALS], i;
 
-	plan_tests((NUM_VALS) * 4);
+	plan_tests((NUM_VALS) * 4 + 1);
 	for (i = 0; i < NUM_VALS; i++)
 		val[i] = i;
 
@@ -33,11 +33,12 @@ int main(void)
 		ok1(htable_add(&ht, hash(&val[i], NULL), &val[i]));
 	}
 
-	htable_copy(&ht2, &ht);
+	ok1(htable_copy(&ht2, &ht));
 	htable_clear(&ht);
 
 	for (i = 0; i < NUM_VALS; i++)
 		ok1(htable_get(&ht2, hash(&i, NULL), cmp, &i) == &val[i]);
+
 	htable_clear(&ht2);
 
 	return exit_status();

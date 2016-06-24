@@ -93,6 +93,7 @@ void htable_clear(struct htable *ht);
  *    }
  *    return true;
  */
+WARN_UNUSED_RESULT
 bool htable_copy(struct htable *dst, const struct htable *src);
 
 /**
