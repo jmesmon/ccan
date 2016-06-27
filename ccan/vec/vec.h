@@ -4,10 +4,12 @@
 
 #include <ccan/compiler/compiler.h>
 #include <ccan/tcon/tcon.h>
+#include <string.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdint.h>
+#include <errno.h>
 
 struct vec_ {
 	void *data;
@@ -63,7 +65,7 @@ static inline int vec_ensure_space_(struct vec_ *v, size_t e_sz)
 		nc += e_sz;
 	void *nd = realloc(v->data, nc);
 	if (!nd)
-		return -1;
+		return -ENOMEM;
 	v->data = nd;
 	v->capacity = nc;
 	return 1;
@@ -72,7 +74,7 @@ static inline int vec_ensure_space_(struct vec_ *v, size_t e_sz)
 static inline int vec_ensure_space_n_(struct vec_ *v, size_t elem_ct, size_t elem_sz)
 {
 	if (SIZE_MAX / elem_ct <= elem_sz)
-		return -1;
+		return -ENOMEM;
 	return vec_ensure_space_(v, elem_ct * elem_sz);
 }
 
@@ -141,6 +143,23 @@ static inline void *vec_append_space_n_(struct vec_ *v, size_t elem_ct, size_t e
 	*vec_append__l_ = elem_; \
 	vec_append__r_; \
 })
+
+/**
+ * vec_concat - append a vec to the end of another vec
+ * @base: the vec to extend
+ * @extra: the vec to read data from to extend @base
+ *
+ * Can only fail due to memory exaustion.
+ */
+#define vec_concat(base_, extra_) vec_concat_(tcon_unwrap(tcon_check_eq(base_, extra_, elem)), tcon_unwrap(extra_))
+static inline int vec_concat_(struct vec_ *base, struct vec_ *extra)
+{
+	void *d = vec_append_space_(base, extra->used);
+	if (!d)
+		return -ENOMEM;
+	memcpy(d, extra->data, extra->used);
+	return 0;
+}
 
 #if 0
 /* Does not work when @elem_ is an r-value as we cannot take the address of an r-value */

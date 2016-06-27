@@ -7,7 +7,7 @@ int main(void)
 
     int v[] = {2,5,6,7,11};
     int i;
-    plan_tests(ARRAY_SIZE(v) + 1);
+    plan_tests(ARRAY_SIZE(v) + 4);
     VEC(int) nums = VEC_INIT;
 
     for (i = 0; i < ARRAY_SIZE(v); i++)
@@ -21,6 +21,17 @@ int main(void)
         j ++;
     }
 
+    VEC(int) nums2 = VEC_INIT;
+    vec_append(&nums2, 4);
+    vec_append(&nums2, 1);
+
+    vec_concat(&nums, &nums2);
+
+    ok1(vec_len(&nums) == (ARRAY_SIZE(v) + 2));
+    ok1(*vec_index(&nums, vec_len(&nums) - 1) == 1);
+    ok1(*vec_index(&nums, vec_len(&nums) - 2) == 4);
+
+    vec_drop(&nums2);
     vec_drop(&nums);
 
     return exit_status();
