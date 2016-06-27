@@ -151,6 +151,18 @@
 
 
 /**
+ * tcon_check_eq - check that 2 tcons have equivalent types
+ * @a: the structure containing the TCON
+ * @b: another structure containing a TCON
+ * @canary: which canary to check against
+ *
+ * Evalutes to @a so it can be chained.
+ */
+#define tcon_check_eq(a, b, canary)				\
+	(sizeof(&(a)->_tcon[0].canary == &(b)->_tcon[0].canary) ? (a) : (a))
+
+
+/**
  * tcon_type - the type within a container (or void *)
  * @x: the structure containing the TCON.
  * @canary: which canary to check against.
