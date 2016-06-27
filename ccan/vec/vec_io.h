@@ -20,7 +20,7 @@
  * At the moment, can only fail if either memory allocation fails or snprintf
  * fails.
  */
-#define vec_vprintf(vec, fmt, ap) vec_vprintf_(tcon_unwrap(vec), fmt, ap)
+#define vec_vprintf(vec, fmt, ap) vec_vprintf_(tcon_unwrap(tcon_check_ptr(vec, elem, "")), fmt, ap)
 WARN_UNUSED_RESULT
 static inline int vec_vprintf_(struct vec_ *vec, const char *fmt, va_list ap)
 {
@@ -58,7 +58,7 @@ static inline int vec_vprintf_(struct vec_ *vec, const char *fmt, va_list ap)
  * At the moment, can only fail if either memory allocation fails or snprintf
  * fails.
  */
-#define vec_printf(vec, ...) vec_printf_(tcon_unwrap(tcon_check(vec, elem, (char)0)), __VA_ARGS__)
+#define vec_printf(vec, ...) vec_printf_(tcon_unwrap(tcon_check_ptr(vec, elem, "")), __VA_ARGS__)
 PRINTF_FMT(2, 3)
 WARN_UNUSED_RESULT
 static inline int vec_printf_(struct vec_ *vec, const char *fmt, ...)
