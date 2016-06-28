@@ -241,6 +241,8 @@ static inline void *vec_index_(struct vec_ *v, size_t idx, size_t e_sz)
  * vec_len - return the number of elements in the vector
  * @vec: &VEC(...): a vector
  *
+ * Return: 'size_t'
+ *
  * Example:
  *	assert(3 == vec_len(&nums));
  */
@@ -304,6 +306,17 @@ static inline size_t vec_len_(struct vec_ *v, size_t e_sz)
 	for(elem_p = vec_index_or_null(vec, 0);\
 		(elem_p)?((elem_i) = *(elem_p), elem_p):elem_p; \
 		elem_p = vec_next_or_null(vec, elem_p))
+
+/**
+ * vec_clear - remove all values from the vec
+ * @vec: &VEC(...): a vector to clear
+ *
+ */
+#define vec_clear(vec_) vec_clear_(tcon_unwrap(vec_))
+static inline void vec_clear_(struct vec_ *v)
+{
+	v->used = 0;
+}
 
 /**
  * vec_drop - cleanup memory associated with a vec
