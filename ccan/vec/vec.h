@@ -238,6 +238,25 @@ static inline void *vec_index_(struct vec_ *v, size_t idx, size_t e_sz)
 }
 
 /**
+ * vec_offset - given a vector & an element, return the index of that element
+ * @vec: &VEC(...): a vector
+ * @elem: &elem_type: a pointer to an element in @vec
+ *
+ * Aborts if @elem is not a member of @vec.
+ *
+ * Example:
+ *	int *thing = vec_index(&nums, 2);
+ *	assert(2 == vec_offset(&nums, thing));
+ */
+#define vec_offset(vec_, elem_) vec_offset_(tcon_unwrap(vec_), tcon_sizeof((vec_), elem), tcon_check_ptr((vec_), elem, (elem_)))
+static inline size_t vec_offset_(struct vec_ *v, size_t e_sz, void *elem)
+{
+	assert(elem >= v->data);
+	assert(elem < (v->data + v->used));
+	return (elem - v->data) / e_sz;
+}
+
+/**
  * vec_len - return the number of elements in the vector
  * @vec: &VEC(...): a vector
  *
