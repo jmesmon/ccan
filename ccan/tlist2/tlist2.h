@@ -190,6 +190,24 @@
 #define tlist2_tail(h) tcon_container_of((h), canary, list_tail_(tcon_unwrap(h), 0))
 
 /**
+ * tlist2_next - get the next entry in a list
+ * @h: &TLIST(...)
+ * @i: (etype *), used as an iterator
+ */
+#define tlist2_next(h, i) tcon_container_of((h), canary, \
+		list_entry_or_null(tcon_unwrap(h), tcon_member_of((h), canary, (i))->next, 0) \
+	)
+
+/**
+ * tlest2_prev - get the previous entry in a list
+ * @h: &TLIST(...), the tlist2
+ * @i: (etype *), the list element
+ */
+#define tlist2_prev(h, i) tcon_container_of((h), canary, \
+		list_entry_or_null(tcon_unwrap(h), tcon_member_of((h), canary, (i))->prev, 0) \
+	)
+
+/**
  * tlist2_for_each - iterate through a list.
  * @h: the tlist
  * @i: an iterator of suitable type for this list.
