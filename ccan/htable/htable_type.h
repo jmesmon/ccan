@@ -175,7 +175,7 @@
  * @name_: the name of the htable as given to HTABLE_DEFINE_TYPE
  *
  */
-#define HTABLE_INIT(self_, name_) { HTABLE_INITIALIZER(self_.raw, name_##_hash, NULL) }
+#define HTABLE_INIT(self_, name_) { HTABLE_INITIALIZER((self_).raw, name_##_hash, NULL) }
 
 #if HAVE_TYPEOF
 #define HTABLE_KTYPE(keyof, type) typeof(keyof((const type *)NULL))
