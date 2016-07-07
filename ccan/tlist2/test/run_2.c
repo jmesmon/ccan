@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	unsigned int i;
 	TLIST2(struct child, list) tlist = TLIST2_INIT(tlist);
 
-	plan_tests(48);
+	plan_tests(52);
 	/* Test TLIST2_INIT, and tlist2_empty */
 	ok1(tlist2_empty(&tlist));
 	ok1(tlist2_check(&tlist, NULL));
@@ -75,6 +75,25 @@ int main(int argc, char *argv[])
 
 	/* Test list_tail */
 	ok1(tlist2_tail(&parent.children) == &c3);
+
+	/* Test tlist2_next */
+	i = 0;
+	for (c = tlist2_top(&parent.children); c; c = tlist2_next(&parent.children, c)) {
+		switch (i++) {
+		case 0:
+			ok1(c == &c1);
+			break;
+		case 1:
+			ok1(c == &c2);
+			break;
+		case 2:
+			ok1(c == &c3);
+			break;
+		}
+		if (i > 2)
+			break;
+	}
+	ok1(i == 3);
 
 	/* Test tlist2_for_each. */
 	i = 0;
