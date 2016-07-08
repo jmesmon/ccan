@@ -214,6 +214,18 @@
 #endif
 
 /**
+ * tcon_ret_type - type of the return value of a function pointer
+ * @x: the structure containing the TCON
+ * @canary: which canary to check against.
+ * @...: dummy args to the fn
+ */
+#if HAVE_TYPEOF
+#define tcon_ret_type(x, canary, ...) __typeof__((x)->_tcon[0].canary(__VA_ARGS__))
+#else
+#define tcon_ret_type(x, canary, ...) void *
+#endif
+
+/**
  * tcon_cast - cast to a canary type for this container (or void *)
  * @x: a structure containing the TCON.
  * @canary: which canary to cast to.
