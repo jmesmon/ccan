@@ -98,6 +98,7 @@ MODS := a_star \
 	rfc822 \
 	rszshm \
 	short_types \
+	signal \
 	siphash \
 	sparse_bsearch \
 	str \

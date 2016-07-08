@@ -1,0 +1,60 @@
+#include "config.h"
+#include <stdio.h>
+#include <string.h>
+
+/**
+ * signal - register multiple callbacks for an event
+ *
+ * Each callback has a context, which can be any size.
+ * Pointer to the context given to the callback.
+ *
+ * Example:
+ *	#include <err.h>
+ *	#include <stdio.h>
+ *	#include <stdlib.h>
+ *	#include <ccan/signal/signal.h>
+ *
+ *	static int mult(double *ctx, double v)
+ *	{
+ *		return *ctx * v;
+ *	}
+ *
+ *	static int add(int *x, double v)
+ *	{
+ *		return *x + v;
+ *	}
+ *
+ *	int main(int argc, char *argv[])
+ *	{
+ *		SIGNAL(int, double) notify = SIGNAL_INIT(notify);
+ *		signal_connect(&notify, add, 3);
+ *		signal_connect(&notify, mult, 1.2);
+ *		struct signal_connection *conn;
+ *		int r, c = 0;
+ *		signal_for_each(&notify, 2, conn, r)
+ *			c += r;
+ *		printf("got: %d\n", c);
+ *		return 0;
+ *	}
+ *
+ * License: LGPL
+ * Author: Cody P Schafer <dev@codyps.com>
+ */
+int main(int argc, char *argv[])
+{
+	if (argc != 2)
+		return 1;
+
+	if (strcmp(argv[1], "depends") == 0) {
+		printf("ccan/tlist2\n");
+		printf("ccan/tcon\n");
+		printf("ccan/typesafe_cb\n");
+		return 0;
+	} else if (strcmp(argv[1], "testdepends") == 0) {
+		printf("ccan/array_size\n");
+		printf("ccan/str\n");
+		return 0;
+	}
+
+	return 1;
+}
