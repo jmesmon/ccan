@@ -26,12 +26,12 @@
  *
  *	int main(int argc, char *argv[])
  *	{
- *		SIGNAL(int, double) notify = SIGNAL_INIT(notify);
- *		signal_connect(&notify, add, 3);
- *		signal_connect(&notify, mult, 1.2);
+ *		SIGNAL1(int, double) notify = SIGNAL_INIT(notify);
+ *		signal1_connect(&notify, add, 3);
+ *		signal1_connect(&notify, mult, 1.2);
  *		struct signal_connection *conn;
  *		int r, c = 0;
- *		signal_for_each(&notify, 2, conn, r)
+ *		signal_for_each(&notify, conn, r, 2)
  *			c += r;
  *		printf("got: %d\n", c);
  *		return 0;

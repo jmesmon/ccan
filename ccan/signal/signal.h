@@ -23,23 +23,38 @@ struct signal_ {
 };
 
 /**
- * SIGNAL - delare an object which can have multiple callbacks registered
+ * SIGNAL1 - delare an object which can have multiple callbacks registered
  * @ret_type_: each callback may return a value. All for a single signal must
  *             return the same type. This is that type.
  * @arg_type_: when a signal is emitted, a value is provided to all the
  *             callbacks. This is the type of that value.
  *
  * Example:
- *      SIGNAL(int, double) notify_of_double_ret_int;
+ *      SIGNAL1(int, double) notify_of_double_ret_int;
  */
-#define SIGNAL(ret_type_, arg_type_) TCON_WRAP(struct signal_, ret_type_ ret; arg_type_ arg)
+#define SIGNAL1(ret_type_, arg_type_) TCON_WRAP(struct signal_, \
+        ret_type_ (*fn_ret)(void); \
+        ret_type_ (*fn_partial)(void *, arg_type_); \
+        arg_type_ arg)
+
+/**
+ * SIGNAL0 - delare an object which can have multiple callbacks registered
+ * @ret_type_: each callback may return a value. All for a single signal must
+ *             return the same type. This is that type.
+ *
+ * Example:
+ *      SIGNAL0(int) notify_ret_int;
+ */
+#define SIGNAL0(ret_type_) TCON_WRAP(struct signal_, \
+        ret_type_ (*fn_ret)(void); \
+        ret_type_ (*fn_partial)(void *))
 
 /**
  * SIGNAL_INIT - initializer for a SIGNAL(...)
  * @self_: name of the signal
  *
  * Example:
- *      SIGNAL(int, double) notify = SIGNAL_INIT(notify);
+ *      SIGNAL1(int, double) notify = SIGNAL_INIT(notify);
  *
  */
 #define SIGNAL_INIT(self_) TCON_WRAP_INIT({.conns = TLIST2_INIT((self_)._base.conns)})
@@ -49,7 +64,7 @@ struct signal_ {
  * @sig: signal to initialize
  *
  * Example:
- *      SIGNAL(int, double) n2;
+ *      SIGNAL1(int, double) n2;
  *      signal_init(&n2);
  *
  */
@@ -59,24 +74,39 @@ static inline void signal_init_(struct signal_ *sig)
     tlist2_init(&sig->conns);
 }
 
-/**
- * signal_connect - connect a callback & context (slot) to a signal
- * @signal_: &SIGNAL(...): a signal
- * @cb_: ret_type (*)(ctx_type *ctx, arg_type arg): the callback that is invoked
- * @ctx_: context, value is copied into the connection. A pointer to the value is provided to the callback
- *
- */
-#define signal_connect(signal_, cb_, ctx_) \
+#define signal_n_connect(signal_, cb_, ctx_, ...) \
     __extension__ ({ \
             __typeof__(ctx_) signal_connect_ctx_ = (ctx_); \
             signal_connect_(tcon_unwrap(signal_), \
                     typesafe_cb_cast( \
                         signal_fn_erase_, \
-                        tcon_type((signal_), ret) (*) (__typeof__(&signal_connect_ctx_), tcon_type((signal_), arg)), \
+                        tcon_ret_type((signal_), fn_ret) (*) (__typeof__(&signal_connect_ctx_), ## __VA_ARGS__), \
                         cb_ \
                     ), &signal_connect_ctx_, sizeof(ctx_) \
             ); \
     })
+
+/**
+ * signal1_connect - connect a callback & context (slot) to a signal
+ * @signal_: &SIGNAL(...): a signal
+ * @cb_: ret_type (*)(ctx_type *ctx, arg_type arg): the callback that is invoked
+ * @ctx_: context, value is copied into the connection. A pointer to the value is provided to the callback
+ *
+ * Note: use of expression statement needed to generate lvalue from a potential rvalue.
+ */
+#define signal1_connect(signal_, cb_, ctx_) \
+    signal_n_connect((signal_), (cb_), (ctx_), tcon_type((signal_), arg))
+
+/**
+ * signal0_connect - connect a callback & context (slot) to a signal
+ * @signal_: &SIGNAL(...): a signal
+ * @cb_: ret_type (*)(ctx_type *ctx, arg_type arg): the callback that is invoked
+ * @ctx_: context, value is copied into the connection. A pointer to the value is provided to the callback
+ *
+ * Note: use of expression statement needed to generate lvalue from a potential rvalue.
+ */
+#define signal0_connect(signal_, cb_, ctx_) \
+    signal_n_connect((signal_), (cb_), (ctx_))
 
 static inline
 struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ fn, void *this_ctx, size_t ctx_sz)
@@ -99,23 +129,35 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
  * signal_call - call 1 signal connection
  * @signal_: &SIGNAL(...)
  * @signal_conn_: (struct signal_connection *), connection of the handler to call
- * @sig_val_: value to pass to the connected handler.
+ * @sig_val: value to pass to callbacks
  */
-#define signal_call(signal_, signal_conn_, sig_val_) \
-    (((tcon_type((signal_), ret)(*)(void *ctx, tcon_type((signal_), arg)))\
-      ((signal_conn_)->fn))(&(signal_conn_)->ctx, sig_val_))
+#define signal_call(signal_, signal_conn_, ...) \
+    (((tcon_type((signal_), fn_partial))\
+      ((signal_conn_)->fn))(&(signal_conn_)->ctx, ## __VA_ARGS__))
 
 /**
  * signal_for_each - send a value to each slot & provide the return value of each in turn
  * @signal_: &SIGNAL(...)
- * @sig_val_: `arg_type`, value to provide to each signal
  * @signal_conn_i_: a `struct signal_connection *` to track our iteration
  * @ret_i_: a `ret_type` which will be given the return value of each call
+ * @sig_val_: `arg_type`, value to provide to each signal
  *
  */
-#define signal_for_each(signal_, sig_val_, signal_conn_i_, ret_i_) \
+#define signal_for_each(signal_, signal_conn_i_, ret_i_, ...) \
     for (signal_conn_i_ = tlist2_top(&tcon_unwrap(signal_)->conns); \
-            signal_conn_i_ ? (ret_i_ = signal_call(signal_, signal_conn_i_, sig_val_), true) : false; \
+            signal_conn_i_ ? (ret_i_ = signal_call(signal_, signal_conn_i_, ## __VA_ARGS__), true) : false; \
+            signal_conn_i_ = tlist2_next(&tcon_unwrap(signal_)->conns, signal_conn_i_))
+
+/**
+ * signal_for_each_void - send a value to each slot
+ * @signal_: &SIGNAL(...)
+ * @signal_conn_i_: a `struct signal_connection *` to track our iteration
+ * @sig_val_: `arg_type`, value to provide to each signal
+ *
+ */
+#define signal_for_each_void(signal_, signal_conn_i_, ...) \
+    for (signal_conn_i_ = tlist2_top(&tcon_unwrap(signal_)->conns); \
+            signal_conn_i_ ? (signal_call(signal_, signal_conn_i_, ## __VA_ARGS__), true) : false; \
             signal_conn_i_ = tlist2_next(&tcon_unwrap(signal_)->conns, signal_conn_i_))
 
 /**
@@ -124,14 +166,21 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
  * @arg_val_: value to pass to the registered handlers
  *
  */
-#define signal_emit(signal_, arg_val_) \
-    __extension__ ({ \
-        tcon_type((signal_), ret_type) signal_emit__ret_; \
-        struct signal_connection *signal_emit__conn_; \
-        signal_for_each((signal_), sig_val, signal_emit__conn_, signal_emit__ret_) \
-            ; \
-        signal_emit__ret_; \
-    })
+#define signal_emit(signal_, ...) \
+    __builtin_choose_expr( \
+        __builtin_types_compatible_p(__typeof__((signal_)->_tcon[0].fn_ret), void(*)(void)), \
+            __extension__ ({ \
+                struct signal_connection *signal_emit__conn_; \
+                signal_for_each_void((signal_), signal_emit__conn_, ## __VA_ARGS__); \
+            }), \
+            __extension__ ({ \
+                tcon_ret_type((signal_), fn_ret) signal_emit__ret_; \
+                struct signal_connection *signal_emit__conn_; \
+                signal_for_each((signal_), signal_emit__conn_, signal_emit__ret_, ## __VA_ARGS__) \
+                    ; \
+                signal_emit__ret_; \
+            }) \
+    )
 
 /**
  * signal_disconnect - remove a connection from a signal
@@ -143,8 +192,8 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
 #define signal_disconnect(signal_, connection_) tlist2_delfrom(&(signal_)->conns, connection_)
 
 /**
- * signal_drop - destruct a signal
- *
+ * signal_drop - destruct a signal, freeing backing memory
+ * @signal_: the signal to drop
  */
 #define signal_drop(signal_) signal_drop_(tcon_unwrap(signal_))
 static inline
