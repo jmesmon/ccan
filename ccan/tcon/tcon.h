@@ -226,6 +226,33 @@
 #endif
 
 /**
+ * tcon_ret_type_non_void - type of the return value of a function pointer if not 'void'
+ * @x: the structure containing the TCON
+ * @canary: which canart to check against
+ * @...: dummy args to the fn
+ *
+ * If the type is 'void', this resolves to an arbitrary type (currently 'void *').
+ * This is useful in contexts where we won't actually use the type (due to
+ * _Generic, __builtin_choose_expr, __typeof__, sizeof or similar) but we need
+ * the compiler to avoid choking on the 'void' type to get to the point where
+ * it discards it.
+ *
+ * Note: It's unlikely code that uses this will still work without
+ * __builtin_choose_expr/__typeof__/__builtin_types_compatible_p, but in case
+ * we're missing any of those, this will result it 'void *'
+ */
+#if HAVE_TYPEOF && HAVE_BUILTIN_CHOOSE_EXPR && HAVE_BUILTIN_TYPES_COMPATIBLE_P
+#define tcon_ret_type_non_void(x, canary, ...) __typeof__(__builtin_choose_expr( \
+	__builtin_types_compatible_p(__typeof__((x)->_tcon[0].canary(__VA_ARGS__)), void), \
+	(void *)NULL, \
+	(x)->_tcon[0].canary(__VA_ARGS__) \
+))
+#else
+#define tcon_ret_type_non_void(x, canary, ...) void *
+#endif
+
+
+/**
  * tcon_cast - cast to a canary type for this container (or void *)
  * @x: a structure containing the TCON.
  * @canary: which canary to cast to.
