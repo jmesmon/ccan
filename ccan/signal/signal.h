@@ -160,6 +160,15 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
             signal_conn_i_ ? (signal_call(signal_, signal_conn_i_, ## __VA_ARGS__), true) : false; \
             signal_conn_i_ = tlist2_next(&tcon_unwrap(signal_)->conns, signal_conn_i_))
 
+#define signal_if_void(expr_, if_void, if_non_void) \
+    __builtin_choose_expr(__builtin_types_compatible_p(void, __typeof__(expr_)), \
+            (if_void), \
+            (if_non_void) \
+    )
+
+#define type_non_void __typeof__(signal_if_void
+#define signal_expr_non_void(expr_) signal_if_void((expr_), (expr_, NULL), (expr_))
+
 /**
  * signal_emit - send a value to all slots, return the value of the last slot
  * @signal_: &SIGNAL(...)
