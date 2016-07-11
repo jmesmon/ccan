@@ -135,6 +135,15 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
     (((tcon_type((signal_), fn_partial))\
       ((signal_conn_)->fn))(&(signal_conn_)->ctx, ## __VA_ARGS__))
 
+
+#define signal_if_void(expr_, if_void, if_non_void) \
+    __builtin_choose_expr(__builtin_types_compatible_p(void, __typeof__(expr_)), \
+            (if_void), \
+            (if_non_void) \
+    )
+
+#define signal_expr_non_void(expr_) signal_if_void((expr_), (expr_, NULL), (expr_))
+
 /**
  * signal_for_each - send a value to each slot & provide the return value of each in turn
  * @signal_: &SIGNAL(...)
@@ -145,7 +154,7 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
  */
 #define signal_for_each(signal_, signal_conn_i_, ret_i_, ...) \
     for (signal_conn_i_ = tlist2_top(&tcon_unwrap(signal_)->conns); \
-            signal_conn_i_ ? (ret_i_ = signal_call(signal_, signal_conn_i_, ## __VA_ARGS__), true) : false; \
+            signal_conn_i_ ? (ret_i_ = signal_expr_non_void(signal_call(signal_, signal_conn_i_, ## __VA_ARGS__)), true) : false; \
             signal_conn_i_ = tlist2_next(&tcon_unwrap(signal_)->conns, signal_conn_i_))
 
 /**
@@ -174,7 +183,7 @@ struct signal_connection *signal_connect_(struct signal_ *sig, signal_fn_erase_ 
                 signal_for_each_void((signal_), signal_emit__conn_, ## __VA_ARGS__); \
             }), \
             __extension__ ({ \
-                tcon_ret_type((signal_), fn_ret) signal_emit__ret_; \
+                tcon_ret_type_non_void((signal_), fn_ret) signal_emit__ret_; \
                 struct signal_connection *signal_emit__conn_; \
                 signal_for_each((signal_), signal_emit__conn_, signal_emit__ret_, ## __VA_ARGS__) \
                     ; \
