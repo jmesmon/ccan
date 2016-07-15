@@ -40,6 +40,16 @@ struct vec_ {
 #define VEC_INIT TCON_WRAP_INIT({NULL, 0, 0})
 
 /**
+ * VEC_ELEM - return the type of the element (if supported)
+ * @vec: &VEC(...)
+ */
+#if HAVE_TYPEOF
+#define VEC_ELEM(vec_) tcon_type(vec_, elem)
+#else
+#define VEC_ELEM(vec_) void
+#endif
+
+/**
  * vec_init - initialize an already declared vec
  * @vec: &VEC(...): a vector to initialize
  *
