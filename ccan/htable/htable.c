@@ -141,6 +141,9 @@ void *htable_nextval(const struct htable *ht,
 
 void *htable_first(const struct htable *ht, struct htable_iter *i)
 {
+	if (!ht->table)
+		return NULL;
+
 	for (i->off = 0; i->off < (size_t)1 << ht->bits; i->off++) {
 		if (entry_is_valid(ht->table[i->off]))
 			return get_raw_ptr(ht, ht->table[i->off]);
