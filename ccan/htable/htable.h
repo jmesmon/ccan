@@ -122,13 +122,6 @@ void htable_move(struct htable *dst, const struct htable *src)
 }
 
 /**
- * htable_rehash - use a hashtree's rehash function
- * @elem: the argument to rehash()
- *
- */
-size_t htable_rehash(const void *elem);
-
-/**
  * htable_add - add a pointer into a hash table.
  * @ht: the htable
  * @hash: the hash value of the object
