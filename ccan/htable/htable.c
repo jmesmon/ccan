@@ -50,7 +50,7 @@ void htable_init(struct htable *ht,
 	*ht = empty;
 	ht->rehash = rehash;
 	ht->priv = priv;
-	ht->table = &ht->perfect_bit;
+	ht->table = NULL;
 }
 
 /* We've changed ht->bits, update ht->max and ht->max_with_deleted */
@@ -74,7 +74,7 @@ bool htable_init_sized(struct htable *ht,
 
 	ht->table = calloc(1 << ht->bits, sizeof(size_t));
 	if (!ht->table) {
-		ht->table = &ht->perfect_bit;
+		ht->table = NULL;
 		return false;
 	}
 	htable_adjust_capacity(ht);
@@ -83,7 +83,7 @@ bool htable_init_sized(struct htable *ht,
 	
 void htable_clear(struct htable *ht)
 {
-	if (ht->table != &ht->perfect_bit)
+	if (ht->table)
 		free((void *)ht->table);
 	htable_init(ht, ht->rehash, ht->priv);
 }
@@ -109,6 +109,9 @@ static size_t hash_bucket(const struct htable *ht, size_t h)
 static void *htable_val(const struct htable *ht,
 			struct htable_iter *i, size_t hash, uintptr_t perfect)
 {
+	if (!ht->table)
+		return NULL;
+
 	uintptr_t h2 = get_hash_ptr_bits(ht, hash) | perfect;
 
 	while (ht->table[i->off]) {
@@ -205,7 +208,7 @@ static COLD bool double_table(struct htable *ht)
 		}
 	}
 
-	if (oldtable != &ht->perfect_bit) {
+	if (oldtable) {
 		for (i = 0; i < oldnum; i++) {
 			if (entry_is_valid(e = oldtable[i])) {
 				void *p = get_raw_ptr(ht, e);
