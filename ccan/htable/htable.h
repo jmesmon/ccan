@@ -39,9 +39,13 @@ struct htable {
  *		return *(size_t *)elem;
  *	}
  *	static struct htable ht = HTABLE_INITIALIZER(ht, rehash, NULL);
+ *
+ *	...
+ *
+ *	printf("%p", &ht);
  */
 #define HTABLE_INITIALIZER(name, rehash, priv)				\
-	{ rehash, priv, 0, 0, 0, 0, 0, -1, 0, 0, &name.perfect_bit }
+	{ rehash, priv, 0, 0, 0, 0, 0, -1, 0, 0, NULL }
 
 /**
  * htable_init - initialize an empty hash table.
@@ -114,8 +118,6 @@ static inline
 void htable_move(struct htable *dst, const struct htable *src)
 {
 	*dst = *src;
-	if (dst->table == &src->perfect_bit)
-		dst->table = &dst->perfect_bit;
 }
 
 /**
