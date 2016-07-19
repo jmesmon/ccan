@@ -135,7 +135,7 @@ static inline void *vec_append_space_n_(struct vec_ *v, size_t elem_ct, size_t e
 }
 
 WARN_UNUSED_RESULT
-static inline int vec_return_must_use_(int r)
+static inline int vec_warn_unused_result_(int r)
 {
 	return r;
 }
@@ -149,16 +149,18 @@ static inline int vec_return_must_use_(int r)
  * Can only fail due to memory exaustion.
  *
  * Example:
- *	vec_append(&nums, 12);
+ *	int r = vec_append(&nums, 12);
+ *	if (r < 0)
+ *		return r;
  */
-#define vec_append(vec_, elem_) __extension__({ \
+#define vec_append(vec_, elem_) vec_warn_unused_result_(__extension__({ \
 	int vec_append__r_ = 0; \
 	tcon_ptr_type((vec_), elem) vec_append__l_ = vec_append_space(vec_); \
 	if (!vec_append__l_) \
 		vec_append__r_ = -1; \
 	*vec_append__l_ = elem_; \
-	vec_return_must_use_(vec_append__r_); \
-})
+	vec_append__r_; \
+}))
 
 /**
  * vec_concat - append a vec to the end of another vec
