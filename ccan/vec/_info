@@ -28,7 +28,8 @@
  *
  *		int i;
  *		for (i = 2; i < argc; i++) {
- *			vec_append(&args, argv[i]);
+ *			if (vec_append(&args, argv[i]) < 0)
+ *				return -1;
  *		}
  *
  *		printf("stored %zu args\n", vec_len(&args));
