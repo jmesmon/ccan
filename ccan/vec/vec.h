@@ -140,6 +140,7 @@ static inline int vec_warn_unused_result_(int r)
 	return r;
 }
 
+#if HAVE_TYPEOF && HAVE_STATEMENT_EXPR
 /**
  * vec_append - add an element to the end of the vector
  * @vec_: &VEC(...): an initialized vector
@@ -161,6 +162,7 @@ static inline int vec_warn_unused_result_(int r)
 	*vec_append__l_ = elem_; \
 	vec_append__r_; \
 }))
+#endif
 
 /**
  * vec_concat - append a vec to the end of another vec
