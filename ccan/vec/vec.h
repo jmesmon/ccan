@@ -134,6 +134,12 @@ static inline void *vec_append_space_n_(struct vec_ *v, size_t elem_ct, size_t e
 	return vec_append_space_(v, elem_ct * elem_sz);
 }
 
+WARN_UNUSED_RESULT
+static inline int vec_return_must_use_(int r)
+{
+	return r;
+}
+
 /**
  * vec_append - add an element to the end of the vector
  * @vec_: &VEC(...): an initialized vector
@@ -151,7 +157,7 @@ static inline void *vec_append_space_n_(struct vec_ *v, size_t elem_ct, size_t e
 	if (!vec_append__l_) \
 		vec_append__r_ = -1; \
 	*vec_append__l_ = elem_; \
-	vec_append__r_; \
+	vec_return_must_use_(vec_append__r_); \
 })
 
 /**
@@ -258,11 +264,11 @@ static inline void *vec_index_(struct vec_ *v, size_t idx, size_t e_sz)
  *	int *thing = vec_index(&nums, 2);
  *	assert(2 == vec_offset(&nums, thing));
  */
-#define vec_offset(vec_, elem_) vec_offset_(tcon_unwrap(vec_), tcon_sizeof((vec_), elem), tcon_check_ptr((vec_), elem, (elem_)))
+#define vec_offset(vec_, elem_) vec_offset_(tcon_unwrap(tcon_check_ptr((vec_), elem, (elem_))), tcon_sizeof((vec_), elem), elem_)
 static inline size_t vec_offset_(struct vec_ *v, size_t e_sz, void *elem)
 {
 	assert(elem >= v->data);
-	assert(elem < (v->data + v->used));
+	assert(((char *)elem + e_sz) <= ((char *)v->data + v->used));
 	return (elem - v->data) / e_sz;
 }
 
