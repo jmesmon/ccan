@@ -354,6 +354,7 @@ static inline void list_del_init_(struct list_node *n, const char *abortstr)
  */
 static inline void list_del_from(struct list_head *h, struct list_node *n)
 {
+	(void)h;
 #ifdef CCAN_LIST_DEBUG
 	{
 		/* Thorough check: make sure it was in list! */
