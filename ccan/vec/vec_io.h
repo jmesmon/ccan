@@ -21,6 +21,7 @@
  * fails.
  */
 #define vec_vprintf(vec, fmt, ap) vec_vprintf_(tcon_unwrap(tcon_check_ptr(vec, elem, "")), fmt, ap)
+PRINTF_FMT(2, 0)
 WARN_UNUSED_RESULT
 static inline int vec_vprintf_(struct vec_ *vec, const char *fmt, va_list ap)
 {

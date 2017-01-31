@@ -227,6 +227,8 @@ static inline void *vec_index_or_null_(struct vec_ *v, size_t idx, size_t e_sz)
  *	assert(*n == 12);
  */
 #define vec_next_or_null(vec, elem_p) (tcon_cast_ptr((vec), elem, vec_next_or_null_(tcon_unwrap(vec), (elem_p), tcon_sizeof((vec), elem))))
+PURE_FUNCTION
+WARN_UNUSED_RESULT
 static inline void *vec_next_or_null_(struct vec_ *v, void *elem, size_t e_sz)
 {
 	size_t off = (char *)elem - (char *)v->data;
