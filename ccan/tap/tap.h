@@ -200,6 +200,8 @@ void todo_end(void);
  * Example:
  *	exit(exit_status());
  */
+WARN_UNUSED_RESULT
+PURE_FUNCTION
 int exit_status(void);
 
 /**
