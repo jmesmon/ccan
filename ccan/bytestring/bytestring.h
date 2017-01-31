@@ -359,6 +359,7 @@ struct bytestring bytestring_splitstr_next(struct bytestring whole,
  * @whole: the whole byte string
  * @prev: the bytestring that was split out of @whole
  */
+PURE_FUNCTION
 static inline
 struct bytestring bytestring_rem(struct bytestring whole, struct bytestring prev)
 {
