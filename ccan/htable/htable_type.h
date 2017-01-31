@@ -10,6 +10,7 @@
 	struct name##_iter { struct htable_iter i; };
 
 #define HTABLE_DEFINE_TYPE_FUNCS(type, keyof, hashfn, eqfn, name)	\
+	PURE_FUNCTION \
 	static inline size_t name##_hash(const void *elem, void *priv)	\
 	{								\
 		(void)priv;						\
