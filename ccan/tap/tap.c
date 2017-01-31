@@ -69,6 +69,7 @@ _expected_tests(unsigned int tests)
 	e_tests = tests;
 }
 
+PRINTF_FMT(1, 0)
 static void
 diagv(const char *fmt, va_list ap)
 {
@@ -77,6 +78,7 @@ diagv(const char *fmt, va_list ap)
 	fputs("\n", stdout);
 }
 
+PRINTF_FMT(1, 0)
 static void
 _diag(const char *fmt, ...)
 {
