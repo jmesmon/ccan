@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <ccan/build_assert/build_assert.h>
+#include <ccan/compiler/compiler.h>
 
 /* Stolen mostly from: lookup3.c, by Bob Jenkins, May 2006, Public Domain.
  * 
@@ -113,6 +114,7 @@
  * only useful for internal hashes (ie. not hashes sent across the
  * network or saved to disk).
  */
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_u32(const uint32_t *key, size_t num, uint32_t base);
 
 /**
@@ -127,6 +129,7 @@ uint32_t hash_u32(const uint32_t *key, size_t num, uint32_t base);
  * network or saved to disk).  The results will be different from the
  * other hash functions in this module, too.
  */
+PURE_FUNCTION WARN_UNUSED_RESULT
 static inline uint32_t hash_string(const char *string)
 {
 	/* This is Karl Nelson <kenelson@ece.ucdavis.edu>'s X31 hash.
@@ -244,15 +247,25 @@ static inline uint32_t hash_string(const char *string)
 	 ? hash64((p), (num), (base)) : hash((p), (num), (base))))
 
 /* Our underlying operations. */
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_any(const void *key, size_t length, uint32_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_stable_64(const void *key, size_t n, uint32_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_stable_32(const void *key, size_t n, uint32_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_stable_16(const void *key, size_t n, uint32_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint32_t hash_stable_8(const void *key, size_t n, uint32_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint64_t hash64_any(const void *key, size_t length, uint64_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint64_t hash64_stable_64(const void *key, size_t n, uint64_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint64_t hash64_stable_32(const void *key, size_t n, uint64_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint64_t hash64_stable_16(const void *key, size_t n, uint64_t base);
+PURE_FUNCTION WARN_UNUSED_RESULT
 uint64_t hash64_stable_8(const void *key, size_t n, uint64_t base);
 
 /**
@@ -297,6 +310,7 @@ uint64_t hash64_stable_8(const void *key, size_t n, uint64_t base);
  *		return NULL;
  *	}
  */
+PURE_FUNCTION WARN_UNUSED_RESULT
 static inline uint32_t hash_pointer(const void *p, uint32_t base)
 {
 	if (sizeof(p) % sizeof(uint32_t) == 0) {
