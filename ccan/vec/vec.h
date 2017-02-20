@@ -271,7 +271,7 @@ static inline void *vec_index_(struct vec_ *v, size_t idx, size_t e_sz)
  *	assert(2 == vec_offset(&nums, thing));
  */
 #define vec_offset(vec_, elem_) vec_offset_(tcon_unwrap(tcon_check_ptr((vec_), elem, (elem_))), tcon_sizeof((vec_), elem), elem_)
-static inline size_t vec_offset_(struct vec_ *v, size_t e_sz, void *elem)
+static inline size_t vec_offset_(const struct vec_ *v, size_t e_sz, const void *elem)
 {
 	assert(elem >= v->data);
 	assert(((char *)elem + e_sz) <= ((char *)v->data + v->used));
